@@ -26,7 +26,7 @@ const App: React.FC = () => {
         setCurrentStudent(student);
         setRole('student');
       } else {
-        setError('Student ID not found (Try "S001")');
+        setError('ไม่พบรหัสนักเรียนนี้ในระบบ');
       }
     }
   };
@@ -98,10 +98,10 @@ const App: React.FC = () => {
                   type="text"
                   value={loginId}
                   onChange={(e) => setLoginId(e.target.value)}
-                  placeholder="ENTER ID..."
-                  className="w-full bg-slate-950/60 border border-slate-700/80 text-white p-5 pl-6 rounded-2xl focus:ring-2 focus:ring-game-gold focus:border-game-gold/50 outline-none transition-all font-game text-xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] placeholder:text-slate-600 placeholder:font-display group-hover/input:border-slate-500 uppercase tracking-widest"
+                  placeholder="รหัสนักเรียน 4 หลัก..."
+                  className="w-full bg-slate-950/60 border border-slate-700/80 text-white p-5 pl-6 rounded-2xl focus:ring-2 focus:ring-game-gold focus:border-game-gold/50 outline-none transition-all font-game text-xl shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] placeholder:text-slate-600 placeholder:font-display group-hover/input:border-slate-500 tracking-widest"
                 />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-game-gold rounded-full animate-pulse shadow-[0_0_10px_#fbbf24]"></div>
+                <div className="absolute right-4 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 bg-game-gold rounded-full animate-pulse shadow-[0_0_10px_#fbbf24]"></div>
               </div>
             </div>
             
@@ -142,12 +142,12 @@ const App: React.FC = () => {
             <div className="mt-10 flex items-center justify-center gap-6 opacity-60">
                <div className="flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-slate-500 rounded-full"></div>
-                 <span className="text-[10px] text-slate-500 font-mono uppercase">V.1.0.4 System Online</span>
+                 <span className="text-[10px] text-slate-500 font-mono uppercase">V.1.0.5 System Online</span>
                </div>
             </div>
             
             <div className="mt-4 text-center text-[10px] text-slate-600 border-t border-slate-800/50 pt-4 font-mono">
-               <p>Demo Credentials: <span className="text-slate-400">S001</span> (Player) / <span className="text-slate-400">admin</span> (GM)</p>
+               <p className="text-slate-500">กรุณากรอกรหัสนักเรียน 4 หลักเพื่อเข้าสู่ระบบ</p>
             </div>
           </div>
         </div>
