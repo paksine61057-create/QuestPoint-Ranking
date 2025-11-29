@@ -3,7 +3,7 @@ import { Student, SubjectCode, SUBJECT_NAMES } from '../types';
 import { calculateTotalScore, calculateGrade, calculateRank, getRankColor, getNextRankInfo, calculateMaxRewards } from '../services/gradingLogic';
 import { RankBadge } from './RankBadge';
 import { SheetService } from '../services/sheetService';
-import { Gift, BookOpen, Star, Zap, TrendingUp, CheckCircle } from 'lucide-react';
+import { Gift, BookOpen, Star, Zap, TrendingUp, CheckCircle, Lock, AlertCircle } from 'lucide-react';
 
 interface Props {
   student: Student;
@@ -26,18 +26,21 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
   }, [student]);
 
   const handleRedeem = async (subject: SubjectCode) => {
-    if (!window.confirm('Confirm redemption? This will consume 1 right.')) return;
+    if (!window.confirm('ยืนยันการใช้สิทธิ์? สิทธิ์ของคุณจะลดลง 1 แต้ม')) return;
     setRedeeming(true);
+    
+    // Call API to deduct right and increment redeemed count in Sheet
     const success = await SheetService.redeemReward(student.id, subject);
+    
     if (success) {
-      // Simulate delay for effect
+      // Simulate delay for effect then refresh data from sheet to show new balance
       setTimeout(() => {
-        alert('Reward Redeemed Successfully!');
-        onRefresh();
+        alert('🎉 ใช้สิทธิ์แลกรางวัลสำเร็จ! (Redeem Success)');
+        onRefresh(); // Critical: Fetch new balance from Sheet
         setRedeeming(false);
-      }, 1000);
+      }, 800);
     } else {
-      alert('Failed to redeem or insufficient rights.');
+      alert('⚠️ ไม่สามารถแลกรางวัลได้\n\nระบบตรวจพบว่าข้อมูลคะแนนในฐานข้อมูลยังไม่อัปเดต หรือสิทธิ์ไม่เพียงพอ\n\n👉 กรุณาแจ้งอาจารย์ประจำวิชาให้กด "บันทึก" คะแนนเพื่ออัปเดตสิทธิ์ล่าสุด');
       setRedeeming(false);
     }
   };
@@ -92,7 +95,17 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
           
           const nextRankData = getNextRankInfo(totalScore);
           const maxRewards = calculateMaxRewards(totalScore);
+          const redeemed = data.redeemedCount || 0;
           
+          // Use stored rewardRights directly from Sheet as Primary Truth
+          // Fallback to calculation only if data looks completely desynced (e.g. rights > max)
+          let rightsBalance = data.rewardRights;
+          
+          // Safety: If Teacher hasn't synced yet, we can show a calculated prediction
+          // But to strictly follow "record remaining rights to sheets", we prioritize the sheet value `data.rewardRights`
+          // calculatedAvailable is used just to check consistency
+          const calculatedAvailable = Math.max(0, maxRewards - redeemed);
+
           // Progress Calculation (Current tier logic)
           const currentRankThreshold = nextRankData.threshold - nextRankData.pointsNeeded - (totalScore - (nextRankData.threshold - nextRankData.pointsNeeded)); 
           const progressPercent = Math.min((totalScore / nextRankData.threshold) * 100, 100);
@@ -101,7 +114,7 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               
               {/* LEFT COL: Rank Card */}
-              <div className="glass-panel rounded-3xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group border border-white/5 hover:border-white/20 transition-all duration-500 hover:shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+              <div className="glass-panel rounded-3xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group border border-white/5 hover:border-white/20 transition-all duration-500 hover:shadow-[0_0_40px_rgba(0,0,0,0.5)] h-fit">
                 {/* Dynamic Background Gradient */}
                 <div className={`absolute inset-0 opacity-20 bg-gradient-to-br ${rankColor} transition-opacity duration-500 group-hover:opacity-30`}></div>
                 
@@ -182,6 +195,66 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                     </div>
                 </div>
 
+                {/* Reward Zone (Moved Up for better visibility) */}
+                <div className="relative group animate-slideIn">
+                    <div className={`absolute inset-0 bg-gradient-to-r ${rightsBalance > 0 ? 'from-game-gold via-orange-500 to-yellow-500' : 'from-slate-800 to-slate-700'} rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500`}></div>
+                    <div className={`glass-panel relative rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-center gap-6 border ${rightsBalance > 0 ? 'border-game-gold/30' : 'border-slate-700'}`}>
+                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 group-hover:rotate-6 transition-transform relative overflow-hidden ${rightsBalance > 0 ? 'bg-gradient-to-br from-game-gold to-orange-600' : 'bg-slate-800'}`}>
+                                {rightsBalance > 0 && <div className="absolute inset-0 bg-white/20 animate-shine"></div>}
+                                {rightsBalance > 0 ? <Gift className="text-slate-900 w-8 h-8 relative z-10" /> : <Lock className="text-slate-500 w-8 h-8" />}
+                            </div>
+                            <div>
+                                <h3 className={`text-xl font-bold ${rightsBalance > 0 ? 'text-game-gold' : 'text-slate-400'}`}>
+                                  REWARD CENTER
+                                </h3>
+                                <p className="text-slate-400 text-xs sm:text-sm mb-1">Redeem rights for special rewards.</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                   <span className="bg-slate-900/50 px-2 py-0.5 rounded text-[10px] text-slate-400 border border-slate-700">Lifetime Earned: {maxRewards}</span>
+                                   <span className="bg-slate-900/50 px-2 py-0.5 rounded text-[10px] text-slate-400 border border-slate-700">Used: {redeemed}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="flex flex-col items-center sm:items-end gap-2 w-full sm:w-auto">
+                           <button 
+                               onClick={() => handleRedeem(selectedSubject)}
+                               disabled={rightsBalance <= 0 || redeeming}
+                               className={`w-full sm:w-48 py-4 rounded-xl font-bold font-display tracking-widest text-sm shadow-xl transition-all transform hover:-translate-y-1 active:translate-y-0 relative overflow-hidden flex items-center justify-center gap-2 ${
+                               rightsBalance > 0 
+                               ? 'bg-gradient-to-r from-game-gold to-yellow-500 text-slate-900 hover:shadow-[0_0_20px_rgba(251,191,36,0.6)] cursor-pointer' 
+                               : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700 opacity-70'
+                               }`}
+                           >
+                               {redeeming ? (
+                                 <span className="animate-pulse">PROCESSING...</span>
+                               ) : (
+                                 <>
+                                   {rightsBalance > 0 ? 'REDEEM REWARD' : 'NO RIGHTS'}
+                                   {rightsBalance > 0 && <Zap size={16} className="fill-slate-900" />}
+                                 </>
+                               )}
+                               {rightsBalance > 0 && <div className="absolute inset-0 bg-white/30 animate-shine pointer-events-none"></div>}
+                           </button>
+                           
+                           {/* Show Realtime Balance from Sheet */}
+                           {rightsBalance > 0 ? (
+                             <span className="text-xs text-game-gold font-bold animate-pulse flex items-center gap-1">
+                               <CheckCircle size={12} /> {rightsBalance} Rights Available
+                             </span>
+                           ) : (
+                             calculatedAvailable > 0 ? (
+                                <span className="text-[10px] text-orange-400 font-mono animate-pulse flex items-center gap-1">
+                                   <AlertCircle size={10} /> Syncing Score... ({calculatedAvailable} Pending)
+                                </span>
+                             ) : (
+                                <span className="text-[10px] text-slate-600 font-mono">Rank up to earn more rights</span>
+                             )
+                           )}
+                        </div>
+                    </div>
+                </div>
+
                 {/* Detailed Breakdown */}
                 <div className="glass-panel rounded-2xl p-6 border border-white/5">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4">
@@ -218,46 +291,6 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                                  <span className="text-sm text-slate-400">Final Exam</span>
                                  <span className="text-xl font-mono font-bold text-white">{data.scores.final}<span className="text-xs text-slate-600">/20</span></span>
                              </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Reward Zone */}
-                <div className="relative group">
-                    <div className="absolute inset-0 bg-gradient-to-r from-game-gold via-orange-500 to-yellow-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
-                    <div className="glass-panel relative rounded-2xl p-6 flex flex-col sm:flex-row justify-between items-center gap-6 border border-game-gold/30">
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-gradient-to-br from-game-gold to-orange-600 rounded-xl flex items-center justify-center shadow-lg transform rotate-3 group-hover:rotate-6 transition-transform relative overflow-hidden">
-                                <div className="absolute inset-0 bg-white/20 animate-shine"></div>
-                                <Gift className="text-slate-900 w-8 h-8 relative z-10" />
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-game-gold">Reward Center</h3>
-                                <p className="text-slate-400 text-sm mb-1">Redeem rights for special activities.</p>
-                                <div className="flex items-center gap-3 text-[10px] uppercase font-bold text-slate-500">
-                                   <span>Earned: {maxRewards}</span>
-                                   <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
-                                   <span>Used: {data.redeemedCount}</span>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div className="flex flex-col items-end gap-2">
-                           <button 
-                               onClick={() => handleRedeem(selectedSubject)}
-                               disabled={data.rewardRights <= 0 || redeeming}
-                               className={`px-6 py-3 rounded-xl font-bold font-display tracking-wider text-sm shadow-lg transition-all transform hover:-translate-y-1 active:translate-y-0 relative overflow-hidden w-40 ${
-                               data.rewardRights > 0 
-                               ? 'bg-gradient-to-r from-game-gold to-yellow-500 text-slate-900 hover:shadow-[0_0_20px_rgba(251,191,36,0.6)]' 
-                               : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                               }`}
-                           >
-                               {redeeming ? 'UNLOCKING...' : (data.rewardRights > 0 ? 'REDEEM' : 'EMPTY')}
-                               {data.rewardRights > 0 && <div className="absolute inset-0 bg-white/20 animate-shine pointer-events-none"></div>}
-                           </button>
-                           {data.rewardRights > 0 && (
-                             <span className="text-[10px] text-game-gold animate-pulse">{data.rewardRights} Rights Available</span>
-                           )}
                         </div>
                     </div>
                 </div>

@@ -124,11 +124,14 @@ export const SheetService = {
   // Student uses a reward right
   redeemReward: async (id: string, subject: SubjectCode): Promise<boolean> => {
     if (!API_URL) {
-       // Mock redeem logic
+       // Mock redeem logic matching Google Script logic
        const student = MOCK_DB.find(s => s.id === id);
        if (!student || !student.subjects[subject]) return false;
-       if (student.subjects[subject]!.rewardRights > 0) {
-         student.subjects[subject]!.rewardRights--;
+       
+       const rights = student.subjects[subject]!.rewardRights;
+       
+       if (rights > 0) {
+         student.subjects[subject]!.rewardRights = rights - 1;
          student.subjects[subject]!.redeemedCount++;
          return true;
        }

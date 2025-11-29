@@ -63,7 +63,8 @@ export const TeacherDashboard: React.FC = () => {
         if (numVal < 0) numVal = 0;
     }
 
-    let updatedRights = -1;
+    // Variable to track if we need to update rights
+    let rightsToUpdate: number | null = null;
 
     setStudents(prev => prev.map(s => {
         if (s.id !== studentId) return s;
@@ -71,7 +72,7 @@ export const TeacherDashboard: React.FC = () => {
         const sub = newS.subjects[selectedSubject];
         if (!sub) return s;
 
-        // 1. Update the Score/Status
+        // 1. Update the Score/Status Locally
         if (type === 'assignment' && typeof index === 'number') {
             sub.scores.assignments[index] = numVal;
         } else if (type === 'midterm') {
@@ -82,35 +83,35 @@ export const TeacherDashboard: React.FC = () => {
             sub.status = statusVal;
         }
 
-        // 2. Auto-Calculate Reward Rights
+        // 2. Auto-Calculate Reward Rights (Automatic System)
+        // Logic: Balance = MaxAllowed(based on Score) - Redeemed(History)
         if (sub.status === 'Normal') {
             const newTotal = calculateTotalScore(sub.scores);
             const maxRewards = calculateMaxRewards(newTotal);
-            // Available = Max Allowed - Redeemed
-            const available = Math.max(0, maxRewards - (sub.redeemedCount || 0));
+            const currentRedeemed = sub.redeemedCount || 0;
             
-            if (available !== sub.rewardRights) {
-                sub.rewardRights = available;
-                updatedRights = available;
+            // Calculate what the balance SHOULD be
+            const newBalance = Math.max(0, maxRewards - currentRedeemed);
+            
+            // Update local state if different
+            if (sub.rewardRights !== newBalance) {
+                sub.rewardRights = newBalance;
+                rightsToUpdate = newBalance;
             }
-        } else {
-            // Reset if status is not normal (optional, depends on policy)
-            // sub.rewardRights = 0;
         }
 
         return newS;
     }));
 
     // 3. Sync to Backend
+    // First, save the score change
     const apiField = type === 'assignment' ? 'assignments' : type;
     const valToSend = type === 'status' ? statusVal : numVal;
-    
-    // Update Score first
     await SheetService.updateStudentScore(studentId, selectedSubject, apiField as any, valToSend, index);
 
-    // If rights changed, update rights too
-    if (updatedRights !== -1) {
-        await SheetService.updateStudentScore(studentId, selectedSubject, 'rewardRights', updatedRights);
+    // Second, if rights were recalculated, save the new balance to Sheet (Column L)
+    if (rightsToUpdate !== null) {
+        await SheetService.updateStudentScore(studentId, selectedSubject, 'rewardRights', rightsToUpdate);
     }
   };
 
