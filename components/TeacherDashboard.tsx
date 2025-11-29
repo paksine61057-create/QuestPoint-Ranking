@@ -86,6 +86,7 @@ export const TeacherDashboard: React.FC = () => {
         // 2. Auto-Calculate Reward Rights (Automatic System)
         // Logic: Balance = MaxAllowed(based on Score) - Redeemed(History)
         if (sub.status === 'Normal') {
+            // Recalculate based on the updated scores immediately
             const newTotal = calculateTotalScore(sub.scores);
             const maxRewards = calculateMaxRewards(newTotal);
             const currentRedeemed = sub.redeemedCount || 0;
@@ -110,6 +111,7 @@ export const TeacherDashboard: React.FC = () => {
     await SheetService.updateStudentScore(studentId, selectedSubject, apiField as any, valToSend, index);
 
     // Second, if rights were recalculated, save the new balance to Sheet (Column L)
+    // This ensures that when a student views their dashboard, they see the rights derived from the latest score
     if (rightsToUpdate !== null) {
         await SheetService.updateStudentScore(studentId, selectedSubject, 'rewardRights', rightsToUpdate);
     }

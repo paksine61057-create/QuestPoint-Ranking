@@ -39,6 +39,8 @@
               'shine': 'shine 8s linear infinite',
               'glow': 'glow 2s ease-in-out infinite alternate',
               'spin-slow': 'spin 12s linear infinite',
+              'shimmer-sweep': 'shimmer-sweep 6s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+              'twinkle': 'twinkle 4s ease-in-out infinite',
             },
             keyframes: {
               float: {
@@ -52,6 +54,15 @@
               glow: {
                 '0%': { boxShadow: '0 0 5px rgba(251, 191, 36, 0.2)' },
                 '100%': { boxShadow: '0 0 20px rgba(251, 191, 36, 0.6), 0 0 10px rgba(251, 191, 36, 0.4)' },
+              },
+              'shimmer-sweep': {
+                '0%': { transform: 'translate(-100%, -100%) rotate(45deg)' },
+                '20%': { transform: 'translate(100%, 100%) rotate(45deg)' },
+                '100%': { transform: 'translate(100%, 100%) rotate(45deg)' }
+              },
+              twinkle: {
+                '0%, 100%': { opacity: 0.2, transform: 'scale(0.8)' },
+                '50%': { opacity: 1, transform: 'scale(1.2)' }
               }
             }
           }
@@ -113,16 +124,16 @@
         animation: shine 6s linear infinite;
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "react/": "https://aistudiocdn.com/react@^19.2.0/",
     "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "recharts": "https://aistudiocdn.com/recharts@^3.5.1",
     "vite": "https://aistudiocdn.com/vite@^7.2.4",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1"
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0"
   }
 }
 </script>

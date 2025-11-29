@@ -14,11 +14,11 @@ const App: React.FC = () => {
   const handleLogin = async (selectedRole: Role) => {
     setError('');
     if (selectedRole === 'teacher') {
-      // Simple teacher check (In real app, use proper auth)
-      if (loginId === 'admin') {
+      // Teacher Password Check
+      if (loginId === 'admin4444') { 
         setRole('teacher');
       } else {
-        setError('Invalid Admin ID (Try "admin")');
+        setError('รหัสผ่านครูไม่ถูกต้อง (Invalid Password)');
       }
     } else {
       const student = await SheetService.getStudentById(loginId);
@@ -142,7 +142,7 @@ const App: React.FC = () => {
             <div className="mt-10 flex items-center justify-center gap-6 opacity-60">
                <div className="flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-slate-500 rounded-full"></div>
-                 <span className="text-[10px] text-slate-500 font-mono uppercase">V.1.0.7 System Online</span>
+                 <span className="text-[10px] text-slate-500 font-mono uppercase">V.1.0.9 System Online</span>
                </div>
             </div>
             
