@@ -23,14 +23,6 @@ export const calculateRank = (total: number, status: SpecialStatus): Rank => {
   if (status !== 'Normal') return Rank.BRONZE;
 
   // Gamified Rank System (Easier progression)
-  // Bronze: 0-29
-  // Silver: 30-44
-  // Gold: 45-59
-  // Platinum: 60-74
-  // Diamond: 75-89
-  // Commander: 90-95
-  // Conqueror: 96-100
-  
   if (total >= 96) return Rank.CONQUEROR;
   if (total >= 90) return Rank.COMMANDER;
   if (total >= 75) return Rank.DIAMOND;
@@ -38,6 +30,16 @@ export const calculateRank = (total: number, status: SpecialStatus): Rank => {
   if (total >= 45) return Rank.GOLD;
   if (total >= 30) return Rank.SILVER;
   return Rank.BRONZE;
+};
+
+export const calculateMaxRewards = (total: number): number => {
+  if (total >= 96) return 6; // Conqueror
+  if (total >= 90) return 5; // Commander
+  if (total >= 75) return 4; // Diamond
+  if (total >= 60) return 3; // Platinum
+  if (total >= 45) return 2; // Gold
+  if (total >= 30) return 1; // Silver
+  return 0; // Bronze
 };
 
 export const getNextRankInfo = (total: number): { nextRank: Rank | null; pointsNeeded: number; threshold: number } => {

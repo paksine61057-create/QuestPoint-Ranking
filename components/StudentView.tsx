@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Student, SubjectCode, SUBJECT_NAMES } from '../types';
-import { calculateTotalScore, calculateGrade, calculateRank, getRankColor, getNextRankInfo } from '../services/gradingLogic';
+import { calculateTotalScore, calculateGrade, calculateRank, getRankColor, getNextRankInfo, calculateMaxRewards } from '../services/gradingLogic';
 import { RankBadge } from './RankBadge';
 import { SheetService } from '../services/sheetService';
 import { Gift, BookOpen, Star, Zap, TrendingUp, CheckCircle } from 'lucide-react';
@@ -91,11 +91,10 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
           const rankColor = getRankColor(rank);
           
           const nextRankData = getNextRankInfo(totalScore);
+          const maxRewards = calculateMaxRewards(totalScore);
           
-          // Calculate progress bar percentage relative to previous rank threshold
-          // This makes the bar show progress ONLY for the current rank tier, not 0-100 total
-          const currentRankThreshold = nextRankData.threshold - nextRankData.pointsNeeded - (totalScore - (nextRankData.threshold - nextRankData.pointsNeeded)); // Tricky logic, let's simplify for visual: just use total score % relative to next threshold or just 0-100 absolute for simplicity in this context.
-          // Simplest visual: Total Score / Next Threshold.
+          // Progress Calculation (Current tier logic)
+          const currentRankThreshold = nextRankData.threshold - nextRankData.pointsNeeded - (totalScore - (nextRankData.threshold - nextRankData.pointsNeeded)); 
           const progressPercent = Math.min((totalScore / nextRankData.threshold) * 100, 100);
 
           return (
@@ -144,9 +143,6 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                               className={`h-full bg-gradient-to-r ${rankColor} absolute left-0 top-0 transition-all duration-1000 blur-[2px]`}
                               style={{ width: `${progressPercent}%` }}
                            ></div>
-                           
-                           {/* Target Marker (Always at 100% of this specific bar context, or we just show filled bar) */}
-                           {/* To simplify, we just show the bar filling up towards the right */}
                         </div>
                          <div className="flex justify-between mt-1 text-[10px] text-slate-600 font-mono">
                             <span>0</span>
@@ -237,26 +233,32 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-bold text-game-gold">Reward Center</h3>
-                                <p className="text-slate-400 text-sm">Redeem your rights for special activities.</p>
-                                <div className="mt-1 flex items-center gap-2">
-                                    <span className="text-xs text-slate-500 uppercase font-bold">Available Rights:</span>
-                                    <span className="text-white font-mono font-bold bg-slate-800 px-2 py-0.5 rounded border border-slate-600">{data.rewardRights}</span>
+                                <p className="text-slate-400 text-sm mb-1">Redeem rights for special activities.</p>
+                                <div className="flex items-center gap-3 text-[10px] uppercase font-bold text-slate-500">
+                                   <span>Earned: {maxRewards}</span>
+                                   <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
+                                   <span>Used: {data.redeemedCount}</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <button 
-                            onClick={() => handleRedeem(selectedSubject)}
-                            disabled={data.rewardRights <= 0 || redeeming}
-                            className={`px-6 py-3 rounded-xl font-bold font-display tracking-wider text-sm shadow-lg transition-all transform hover:-translate-y-1 active:translate-y-0 relative overflow-hidden ${
-                            data.rewardRights > 0 
-                            ? 'bg-gradient-to-r from-game-gold to-yellow-500 text-slate-900 hover:shadow-[0_0_20px_rgba(251,191,36,0.6)]' 
-                            : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                            }`}
-                        >
-                            {redeeming ? 'UNLOCKING...' : 'REDEEM REWARD'}
-                            {data.rewardRights > 0 && <div className="absolute inset-0 bg-white/20 animate-shine pointer-events-none"></div>}
-                        </button>
+                        <div className="flex flex-col items-end gap-2">
+                           <button 
+                               onClick={() => handleRedeem(selectedSubject)}
+                               disabled={data.rewardRights <= 0 || redeeming}
+                               className={`px-6 py-3 rounded-xl font-bold font-display tracking-wider text-sm shadow-lg transition-all transform hover:-translate-y-1 active:translate-y-0 relative overflow-hidden w-40 ${
+                               data.rewardRights > 0 
+                               ? 'bg-gradient-to-r from-game-gold to-yellow-500 text-slate-900 hover:shadow-[0_0_20px_rgba(251,191,36,0.6)]' 
+                               : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                               }`}
+                           >
+                               {redeeming ? 'UNLOCKING...' : (data.rewardRights > 0 ? 'REDEEM' : 'EMPTY')}
+                               {data.rewardRights > 0 && <div className="absolute inset-0 bg-white/20 animate-shine pointer-events-none"></div>}
+                           </button>
+                           {data.rewardRights > 0 && (
+                             <span className="text-[10px] text-game-gold animate-pulse">{data.rewardRights} Rights Available</span>
+                           )}
+                        </div>
                     </div>
                 </div>
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Student, SubjectCode, SUBJECT_NAMES, SpecialStatus } from '../types';
 import { SheetService } from '../services/sheetService';
-import { calculateTotalScore, calculateGrade, calculateRank } from '../services/gradingLogic';
+import { calculateTotalScore, calculateGrade, calculateRank, calculateMaxRewards } from '../services/gradingLogic';
 import { RankBadge } from './RankBadge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { RefreshCw, X, Search, Trophy, User, Filter } from 'lucide-react';
+import { RefreshCw, X, Search, Trophy, User, Filter, Save } from 'lucide-react';
 
 export const TeacherDashboard: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -63,12 +63,15 @@ export const TeacherDashboard: React.FC = () => {
         if (numVal < 0) numVal = 0;
     }
 
+    let updatedRights = -1;
+
     setStudents(prev => prev.map(s => {
         if (s.id !== studentId) return s;
         const newS = JSON.parse(JSON.stringify(s)); 
         const sub = newS.subjects[selectedSubject];
         if (!sub) return s;
 
+        // 1. Update the Score/Status
         if (type === 'assignment' && typeof index === 'number') {
             sub.scores.assignments[index] = numVal;
         } else if (type === 'midterm') {
@@ -78,13 +81,37 @@ export const TeacherDashboard: React.FC = () => {
         } else if (type === 'status') {
             sub.status = statusVal;
         }
+
+        // 2. Auto-Calculate Reward Rights
+        if (sub.status === 'Normal') {
+            const newTotal = calculateTotalScore(sub.scores);
+            const maxRewards = calculateMaxRewards(newTotal);
+            // Available = Max Allowed - Redeemed
+            const available = Math.max(0, maxRewards - (sub.redeemedCount || 0));
+            
+            if (available !== sub.rewardRights) {
+                sub.rewardRights = available;
+                updatedRights = available;
+            }
+        } else {
+            // Reset if status is not normal (optional, depends on policy)
+            // sub.rewardRights = 0;
+        }
+
         return newS;
     }));
 
+    // 3. Sync to Backend
     const apiField = type === 'assignment' ? 'assignments' : type;
     const valToSend = type === 'status' ? statusVal : numVal;
     
+    // Update Score first
     await SheetService.updateStudentScore(studentId, selectedSubject, apiField as any, valToSend, index);
+
+    // If rights changed, update rights too
+    if (updatedRights !== -1) {
+        await SheetService.updateStudentScore(studentId, selectedSubject, 'rewardRights', updatedRights);
+    }
   };
 
   const handleRightsUpdate = async (val: string) => {
@@ -362,6 +389,10 @@ export const TeacherDashboard: React.FC = () => {
                     <p className="text-xs text-slate-500 uppercase">Total Redeemed History</p>
                     <p className="text-2xl font-mono text-white font-bold mt-1">{editingStudent.subjects[selectedSubject]?.redeemedCount || 0}</p>
                 </div>
+                
+                <p className="text-center text-xs text-slate-600 italic">
+                  * Rights are calculated automatically based on score rank. Adjust manually only if necessary.
+                </p>
             </div>
 
             <div className="p-6 border-t border-slate-800 flex justify-end bg-slate-900">
