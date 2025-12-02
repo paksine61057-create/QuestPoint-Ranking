@@ -22,36 +22,44 @@ export const calculateGrade = (total: number, status: SpecialStatus): string => 
 export const calculateRank = (total: number, status: SpecialStatus): Rank => {
   if (status !== 'Normal') return Rank.BRONZE;
 
-  // Gamified Rank System (Easier progression)
-  if (total >= 96) return Rank.CONQUEROR;
-  if (total >= 90) return Rank.COMMANDER;
-  if (total >= 75) return Rank.DIAMOND;
-  if (total >= 60) return Rank.PLATINUM;
-  if (total >= 45) return Rank.GOLD;
-  if (total >= 30) return Rank.SILVER;
+  // Gamified Rank System (Strict 15-point increments)
+  // Bronze: 0-19
+  // Silver: 20-34
+  // Gold: 35-49
+  // Platinum: 50-64
+  // Diamond: 65-79
+  // Commander: 80-94
+  // Conqueror: 95+
+  
+  if (total >= 95) return Rank.CONQUEROR;
+  if (total >= 80) return Rank.COMMANDER;
+  if (total >= 65) return Rank.DIAMOND;
+  if (total >= 50) return Rank.PLATINUM;
+  if (total >= 35) return Rank.GOLD;
+  if (total >= 20) return Rank.SILVER;
   return Rank.BRONZE;
 };
 
 export const calculateMaxRewards = (total: number): number => {
-  if (total >= 96) return 6; // Conqueror
-  if (total >= 90) return 5; // Commander
-  if (total >= 75) return 4; // Diamond
-  if (total >= 60) return 3; // Platinum
-  if (total >= 45) return 2; // Gold
-  if (total >= 30) return 1; // Silver
+  if (total >= 95) return 6; // Conqueror
+  if (total >= 80) return 5; // Commander
+  if (total >= 65) return 4; // Diamond
+  if (total >= 50) return 3; // Platinum
+  if (total >= 35) return 2; // Gold
+  if (total >= 20) return 1; // Silver
   return 0; // Bronze
 };
 
 export const getNextRankInfo = (total: number): { nextRank: Rank | null; pointsNeeded: number; threshold: number } => {
-  if (total >= 96) return { nextRank: null, pointsNeeded: 0, threshold: 100 };
+  if (total >= 95) return { nextRank: null, pointsNeeded: 0, threshold: 100 };
   
-  if (total >= 90) return { nextRank: Rank.CONQUEROR, pointsNeeded: 96 - total, threshold: 96 };
-  if (total >= 75) return { nextRank: Rank.COMMANDER, pointsNeeded: 90 - total, threshold: 90 };
-  if (total >= 60) return { nextRank: Rank.DIAMOND, pointsNeeded: 75 - total, threshold: 75 };
-  if (total >= 45) return { nextRank: Rank.PLATINUM, pointsNeeded: 60 - total, threshold: 60 };
-  if (total >= 30) return { nextRank: Rank.GOLD, pointsNeeded: 45 - total, threshold: 45 };
+  if (total >= 80) return { nextRank: Rank.CONQUEROR, pointsNeeded: 95 - total, threshold: 95 };
+  if (total >= 65) return { nextRank: Rank.COMMANDER, pointsNeeded: 80 - total, threshold: 80 };
+  if (total >= 50) return { nextRank: Rank.DIAMOND, pointsNeeded: 65 - total, threshold: 65 };
+  if (total >= 35) return { nextRank: Rank.PLATINUM, pointsNeeded: 50 - total, threshold: 50 };
+  if (total >= 20) return { nextRank: Rank.GOLD, pointsNeeded: 35 - total, threshold: 35 };
   
-  return { nextRank: Rank.SILVER, pointsNeeded: 30 - total, threshold: 30 };
+  return { nextRank: Rank.SILVER, pointsNeeded: 20 - total, threshold: 20 };
 };
 
 export const getRankColor = (rank: Rank | null): string => {
