@@ -41,12 +41,13 @@ export const calculateRank = (total: number, status: SpecialStatus): Rank => {
 };
 
 export const calculateMaxRewards = (total: number): number => {
-  if (total >= 95) return 6; // Conqueror
-  if (total >= 80) return 5; // Commander
-  if (total >= 65) return 4; // Diamond
-  if (total >= 50) return 3; // Platinum
-  if (total >= 35) return 2; // Gold
-  if (total >= 20) return 1; // Silver
+  // Grant 2 rights per rank level
+  if (total >= 95) return 12; // Conqueror (6th rank * 2)
+  if (total >= 80) return 10; // Commander (5th rank * 2)
+  if (total >= 65) return 8; // Diamond (4th rank * 2)
+  if (total >= 50) return 6; // Platinum (3rd rank * 2)
+  if (total >= 35) return 4; // Gold (2nd rank * 2)
+  if (total >= 20) return 2; // Silver (1st rank * 2)
   return 0; // Bronze
 };
 
