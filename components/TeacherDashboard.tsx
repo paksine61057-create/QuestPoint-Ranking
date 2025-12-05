@@ -4,13 +4,14 @@ import { SheetService } from '../services/sheetService';
 import { calculateTotalScore, calculateGrade, calculateRank, calculateMaxRewards } from '../services/gradingLogic';
 import { RankBadge } from './RankBadge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { RefreshCw, X, Search, Trophy, User, Filter, Save, Activity } from 'lucide-react';
+import { RefreshCw, X, Search, Trophy, User, Filter, Save, Activity, Gift, History } from 'lucide-react';
 
 export const TeacherDashboard: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSubject, setSelectedSubject] = useState<SubjectCode>(SubjectCode.M1_HISTORY);
   const [filterText, setFilterText] = useState('');
+  const [isAutoRefresh, setIsAutoRefresh] = useState(false);
   
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
@@ -20,26 +21,24 @@ export const TeacherDashboard: React.FC = () => {
     
     const data = await SheetService.getAllStudents();
     
-    // Merge Strategy: If we are editing, we don't want to overwrite active inputs.
-    // However, for this requirements ("Real-time updates"), we assume 'Read-heavy' dashboard.
-    // We will update state. The input fields in the table use values from state.
-    // React's reconciliation usually preserves focus if keys match, but typing might jitter.
-    // For now, we update the whole list to ensure 'Redeemed' counts are live.
-    setStudents(data);
+    // Check if data actually changed to avoid unnecessary re-renders (basic check)
+    if (JSON.stringify(data) !== JSON.stringify(students)) {
+        setStudents(data);
+    }
     
     setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
-    // Real-time Polling every 5 seconds to check for new Redemptions
+    // Real-time Polling every 5 seconds (Optional toggle)
     const interval = setInterval(() => {
-        // Only fetch if not currently editing a specific modal to avoid state jumps
-        // Actually, let's fetch always to show live data in the table
-        fetchData();
+        if (isAutoRefresh) {
+            fetchData();
+        }
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAutoRefresh, students]);
 
   // Filter Logic
   const filteredStudents = students.filter(s => {
@@ -179,9 +178,12 @@ export const TeacherDashboard: React.FC = () => {
            </h1>
            <p className="text-slate-400 text-sm mt-1 ml-14 flex items-center gap-2">
               จัดการคะแนนและสิทธิ์ของนักเรียน 
-              <span className="flex items-center gap-1 bg-green-900/40 text-green-400 px-2 py-0.5 rounded-full text-[10px] border border-green-800 animate-pulse">
-                <Activity size={10} /> LIVE
-              </span>
+              <button 
+                onClick={() => setIsAutoRefresh(!isAutoRefresh)}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] border transition-all ${isAutoRefresh ? 'bg-green-900/40 text-green-400 border-green-800 animate-pulse' : 'bg-slate-800 text-slate-500 border-slate-700 hover:bg-slate-700'}`}
+              >
+                <Activity size={10} /> {isAutoRefresh ? 'LIVE ON' : 'LIVE OFF'}
+              </button>
            </p>
         </div>
         
@@ -247,7 +249,7 @@ export const TeacherDashboard: React.FC = () => {
 
       {/* Main Scoring Table */}
       <div className="glass-panel rounded-2xl overflow-hidden overflow-x-auto shadow-2xl border border-white/5">
-        <table className="w-full text-left border-collapse min-w-[1100px]">
+        <table className="w-full text-left border-collapse min-w-[1200px]">
           <thead>
             <tr className="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider font-bold">
               <th className="p-4 w-12 text-center text-slate-600">#</th>
@@ -265,19 +267,29 @@ export const TeacherDashboard: React.FC = () => {
               </th>
               <th className="p-2 text-center w-20 bg-slate-900/30 border-l border-slate-800 text-game-blue">กลาง <span className="block text-[8px] opacity-50">/20</span></th>
               <th className="p-2 text-center w-20 bg-slate-900/30 border-r border-slate-800 text-game-purple">ปลาย <span className="block text-[8px] opacity-50">/20</span></th>
-              <th className="p-4 text-center w-20 font-bold text-white bg-slate-900/80">รวม</th>
-              <th className="p-4 text-center w-20 bg-slate-900/80">เกรด</th>
+              <th className="p-4 text-center w-16 font-bold text-white bg-slate-900/80">รวม</th>
+              <th className="p-4 text-center w-16 bg-slate-900/80">เกรด</th>
+              
+              {/* New Columns */}
+              <th className="p-4 text-center w-24 text-game-gold bg-slate-900/40 border-l border-slate-800/50">สิทธิ์คงเหลือ</th>
+              <th className="p-4 text-center w-24 text-slate-400 bg-slate-900/40">ใช้ไปแล้ว</th>
+
               <th className="p-4 text-center w-24">สถานะ</th>
               <th className="p-4 text-center w-16">จัดการ</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/50">
             {loading ? (
-              <tr><td colSpan={17} className="p-12 text-center text-slate-500 animate-pulse">กำลังโหลดข้อมูลจากระบบ...</td></tr>
+              <tr><td colSpan={19} className="p-12 text-center text-slate-500 animate-pulse">กำลังโหลดข้อมูลจากระบบ...</td></tr>
             ) : filteredStudents.map((student, index) => {
               const sub = student.subjects[selectedSubject]!;
               const total = calculateTotalScore(sub.scores);
               const rank = calculateRank(total, sub.status);
+              
+              // LIVE CALCULATION for Display (Ensures visual consistency)
+              const maxRewards = calculateMaxRewards(total);
+              const redeemed = sub.redeemedCount || 0;
+              const calculatedRights = Math.max(0, maxRewards - redeemed);
               
               return (
                 <tr key={student.id} className="hover:bg-white/5 transition-colors text-slate-300 group">
@@ -331,6 +343,18 @@ export const TeacherDashboard: React.FC = () => {
                       {calculateGrade(total, sub.status)}
                   </td>
                   
+                  {/* Reward Stats (New Columns) */}
+                  <td className="p-4 text-center bg-slate-900/10 border-l border-slate-800/30">
+                     <span className={`font-bold text-lg ${calculatedRights > 0 ? 'text-game-gold' : 'text-slate-600'}`}>
+                        {calculatedRights}
+                     </span>
+                  </td>
+                  <td className="p-4 text-center bg-slate-900/10">
+                     <span className="font-mono text-slate-400">
+                        {sub.redeemedCount || 0}
+                     </span>
+                  </td>
+
                   {/* Status Dropdown */}
                   <td className="p-2 text-center">
                     <select 

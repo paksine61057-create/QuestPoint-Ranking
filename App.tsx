@@ -147,7 +147,7 @@ const App: React.FC = () => {
             <div className="mt-10 flex items-center justify-center gap-6 opacity-60">
                <div className="flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-slate-500 rounded-full"></div>
-                 <span className="text-[10px] text-slate-500 font-mono uppercase">V.1.1.6 ระบบพร้อมใช้งาน</span>
+                 <span className="text-[10px] text-slate-500 font-mono uppercase">V.1.1.9 ระบบพร้อมใช้งาน</span>
                </div>
             </div>
             
