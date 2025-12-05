@@ -4,7 +4,7 @@ import { SheetService } from '../services/sheetService';
 import { calculateTotalScore, calculateGrade, calculateRank, calculateMaxRewards } from '../services/gradingLogic';
 import { RankBadge } from './RankBadge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { RefreshCw, X, Search, Trophy, User, Filter, Save } from 'lucide-react';
+import { RefreshCw, X, Search, Trophy, User, Filter, Save, Activity } from 'lucide-react';
 
 export const TeacherDashboard: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -15,14 +15,30 @@ export const TeacherDashboard: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
   const fetchData = async () => {
-    setLoading(true);
+    // Only set loading true on first load to prevent flickering on poll
+    if(students.length === 0) setLoading(true);
+    
     const data = await SheetService.getAllStudents();
+    
+    // Merge Strategy: If we are editing, we don't want to overwrite active inputs.
+    // However, for this requirements ("Real-time updates"), we assume 'Read-heavy' dashboard.
+    // We will update state. The input fields in the table use values from state.
+    // React's reconciliation usually preserves focus if keys match, but typing might jitter.
+    // For now, we update the whole list to ensure 'Redeemed' counts are live.
     setStudents(data);
+    
     setLoading(false);
   };
 
   useEffect(() => {
     fetchData();
+    // Real-time Polling every 5 seconds to check for new Redemptions
+    const interval = setInterval(() => {
+        // Only fetch if not currently editing a specific modal to avoid state jumps
+        // Actually, let's fetch always to show live data in the table
+        fetchData();
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filter Logic
@@ -159,9 +175,14 @@ export const TeacherDashboard: React.FC = () => {
              <div className="w-10 h-10 rounded bg-slate-800 flex items-center justify-center text-game-gold shadow-inner border border-slate-600">
                <User />
              </div>
-             COMMAND CENTER
+             ศูนย์ควบคุม (COMMAND CENTER)
            </h1>
-           <p className="text-slate-400 text-sm mt-1 ml-14">Manage student grades and entitlements.</p>
+           <p className="text-slate-400 text-sm mt-1 ml-14 flex items-center gap-2">
+              จัดการคะแนนและสิทธิ์ของนักเรียน 
+              <span className="flex items-center gap-1 bg-green-900/40 text-green-400 px-2 py-0.5 rounded-full text-[10px] border border-green-800 animate-pulse">
+                <Activity size={10} /> LIVE
+              </span>
+           </p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto bg-slate-900/50 p-2 rounded-xl border border-slate-700">
@@ -179,7 +200,7 @@ export const TeacherDashboard: React.FC = () => {
             <Search className="absolute left-3 top-3.5 text-slate-400 w-4 h-4" />
             <input 
               type="text" 
-              placeholder="Search ID or Name..." 
+              placeholder="ค้นหารหัสหรือชื่อ..." 
               className="bg-slate-800 text-white pl-10 p-3 rounded-lg border border-slate-600 outline-none w-full focus:ring-1 focus:ring-game-gold transition-all"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
@@ -195,9 +216,9 @@ export const TeacherDashboard: React.FC = () => {
       {/* Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {[
-          { label: 'Class Average', value: stats.avg, color: 'text-game-gold', border: 'border-game-gold' },
-          { label: 'Highest Score', value: stats.max, color: 'text-game-diamond', border: 'border-game-diamond' },
-          { label: 'Lowest Score', value: stats.min, color: 'text-game-red', border: 'border-game-red' },
+          { label: 'คะแนนเฉลี่ย', value: stats.avg, color: 'text-game-gold', border: 'border-game-gold' },
+          { label: 'คะแนนสูงสุด', value: stats.max, color: 'text-game-diamond', border: 'border-game-diamond' },
+          { label: 'คะแนนต่ำสุด', value: stats.min, color: 'text-game-red', border: 'border-game-red' },
         ].map((stat, idx) => (
           <div key={idx} className={`glass-panel p-5 rounded-2xl border-l-4 ${stat.border} relative overflow-hidden`}>
              <div className="absolute right-0 top-0 w-24 h-24 bg-white/5 rounded-full blur-xl -mr-6 -mt-6"></div>
@@ -207,7 +228,7 @@ export const TeacherDashboard: React.FC = () => {
         ))}
         
         <div className="glass-panel p-4 rounded-2xl h-32 relative group">
-           <p className="absolute top-2 left-4 text-[10px] text-slate-500 uppercase font-bold z-10">Score Distribution</p>
+           <p className="absolute top-2 left-4 text-[10px] text-slate-500 uppercase font-bold z-10">การกระจายคะแนน</p>
            <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                     <Bar dataKey="score" radius={[4, 4, 0, 0]}>
@@ -230,9 +251,9 @@ export const TeacherDashboard: React.FC = () => {
           <thead>
             <tr className="bg-slate-950 text-slate-400 text-xs uppercase tracking-wider font-bold">
               <th className="p-4 w-12 text-center text-slate-600">#</th>
-              <th className="p-4 w-16 text-center text-slate-500">Rank</th>
-              <th className="p-4 w-24">Student ID</th>
-              <th className="p-4 min-w-[180px]">Full Name</th>
+              <th className="p-4 w-16 text-center text-slate-500">แรงค์</th>
+              <th className="p-4 w-24">รหัสนักเรียน</th>
+              <th className="p-4 min-w-[180px]">ชื่อ-สกุล</th>
               <th className="p-0" colSpan={6}>
                  <div className="flex">
                     {[1, 2, 3, 4, 5, 6].map(i => (
@@ -242,17 +263,17 @@ export const TeacherDashboard: React.FC = () => {
                     ))}
                  </div>
               </th>
-              <th className="p-2 text-center w-20 bg-slate-900/30 border-l border-slate-800 text-game-blue">Mid <span className="block text-[8px] opacity-50">/20</span></th>
-              <th className="p-2 text-center w-20 bg-slate-900/30 border-r border-slate-800 text-game-purple">Fin <span className="block text-[8px] opacity-50">/20</span></th>
-              <th className="p-4 text-center w-20 font-bold text-white bg-slate-900/80">Total</th>
-              <th className="p-4 text-center w-20 bg-slate-900/80">Grade</th>
-              <th className="p-4 text-center w-24">Status</th>
-              <th className="p-4 text-center w-16">Act.</th>
+              <th className="p-2 text-center w-20 bg-slate-900/30 border-l border-slate-800 text-game-blue">กลาง <span className="block text-[8px] opacity-50">/20</span></th>
+              <th className="p-2 text-center w-20 bg-slate-900/30 border-r border-slate-800 text-game-purple">ปลาย <span className="block text-[8px] opacity-50">/20</span></th>
+              <th className="p-4 text-center w-20 font-bold text-white bg-slate-900/80">รวม</th>
+              <th className="p-4 text-center w-20 bg-slate-900/80">เกรด</th>
+              <th className="p-4 text-center w-24">สถานะ</th>
+              <th className="p-4 text-center w-16">จัดการ</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/50">
             {loading ? (
-              <tr><td colSpan={17} className="p-12 text-center text-slate-500 animate-pulse">Loading data from system...</td></tr>
+              <tr><td colSpan={17} className="p-12 text-center text-slate-500 animate-pulse">กำลังโหลดข้อมูลจากระบบ...</td></tr>
             ) : filteredStudents.map((student, index) => {
               const sub = student.subjects[selectedSubject]!;
               const total = calculateTotalScore(sub.scores);
@@ -350,7 +371,7 @@ export const TeacherDashboard: React.FC = () => {
               <div>
                  <h2 className="text-xl font-bold text-white flex items-center gap-2">
                     <Trophy size={20} className="text-game-gold"/> 
-                    Reward Management
+                    จัดการรางวัล
                  </h2>
                  <p className="text-slate-400 text-sm">{editingStudent.name}</p>
               </div>
@@ -363,8 +384,8 @@ export const TeacherDashboard: React.FC = () => {
                 <div className="flex items-center justify-between bg-slate-950/80 p-6 rounded-xl border border-slate-800 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-1 h-full bg-game-gold"></div>
                     <div>
-                        <p className="text-sm text-game-gold font-bold uppercase tracking-wider mb-1">Available Rights</p>
-                        <p className="text-xs text-slate-500">Current Balance</p>
+                        <p className="text-sm text-game-gold font-bold uppercase tracking-wider mb-1">สิทธิ์คงเหลือ</p>
+                        <p className="text-xs text-slate-500">ยอดคงเหลือปัจจุบัน</p>
                     </div>
                     <div className="flex items-center gap-3 bg-slate-900 p-1 rounded-lg border border-slate-700">
                         <button 
@@ -389,18 +410,18 @@ export const TeacherDashboard: React.FC = () => {
                 </div>
 
                 <div className="bg-slate-800/30 p-4 rounded-xl text-center border border-dashed border-slate-700">
-                    <p className="text-xs text-slate-500 uppercase">Total Redeemed History</p>
-                    <p className="text-2xl font-mono text-white font-bold mt-1">{editingStudent.subjects[selectedSubject]?.redeemedCount || 0}</p>
+                    <p className="text-xs text-slate-500 uppercase">ประวัติการแลกทั้งหมด</p>
+                    <p className="text-2xl font-mono text-white font-bold mt-1 animate-pulse">{editingStudent.subjects[selectedSubject]?.redeemedCount || 0}</p>
                 </div>
                 
                 <p className="text-center text-xs text-slate-600 italic">
-                  * Rights are calculated automatically based on score rank. Adjust manually only if necessary.
+                  * สิทธิ์ถูกคำนวณอัตโนมัติจากแรงค์ แก้ไขเฉพาะกรณีจำเป็นเท่านั้น
                 </p>
             </div>
 
             <div className="p-6 border-t border-slate-800 flex justify-end bg-slate-900">
                 <button onClick={() => setEditingStudent(null)} className="bg-white text-slate-900 hover:bg-slate-200 px-6 py-2 rounded-lg text-sm font-bold transition-colors">
-                    Done
+                    เสร็จสิ้น
                 </button>
             </div>
           </div>

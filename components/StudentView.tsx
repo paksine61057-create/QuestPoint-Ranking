@@ -29,18 +29,32 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
     if (!window.confirm('ยืนยันการใช้สิทธิ์? สิทธิ์ของคุณจะลดลง 1 แต้ม')) return;
     setRedeeming(true);
     
-    // Call API to deduct right and increment redeemed count in Sheet
+    // --- LAZY SYNC LOGIC ---
+    // 1. Calculate what the rights SHOULD be based on current score
+    const subData = student.subjects[subject]!;
+    const totalScore = calculateTotalScore(subData.scores);
+    const maxRewards = calculateMaxRewards(totalScore);
+    const redeemed = subData.redeemedCount || 0;
+    const calculatedAvailable = Math.max(0, maxRewards - redeemed);
+
+    // 2. Check if Backend is stale (Stored rights < Calculated rights)
+    if (subData.rewardRights < calculatedAvailable) {
+        console.log('Syncing rights before redeem...', calculatedAvailable);
+        // Force update the backend to match the calculated reality
+        await SheetService.updateStudentScore(student.id, subject, 'rewardRights', calculatedAvailable);
+    }
+
+    // 3. Proceed to Redeem (Backend now has correct balance to deduct from)
     const success = await SheetService.redeemReward(student.id, subject);
     
     if (success) {
-      // Simulate delay for effect then refresh data from sheet to show new balance
       setTimeout(() => {
-        alert('🎉 ใช้สิทธิ์แลกรางวัลสำเร็จ! (Redeem Success)');
+        alert('🎉 ใช้สิทธิ์แลกรางวัลสำเร็จ!');
         onRefresh(); // Critical: Fetch new balance from Sheet
         setRedeeming(false);
       }, 800);
     } else {
-      alert('⚠️ ไม่สามารถแลกรางวัลได้\n\nระบบตรวจพบว่าข้อมูลคะแนนในฐานข้อมูลยังไม่อัปเดต หรือสิทธิ์ไม่เพียงพอ\n\n👉 กรุณาแจ้งอาจารย์ประจำวิชาให้กด "บันทึก" คะแนนเพื่ออัปเดตสิทธิ์ล่าสุด');
+      alert('⚠️ เกิดข้อผิดพลาดในการเชื่อมต่อ\nกรุณาลองใหม่อีกครั้ง');
       setRedeeming(false);
     }
   };
@@ -56,20 +70,20 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer-sweep pointer-events-none"></div>
 
         <div className="relative z-10 text-center md:text-left">
-          <h2 className="text-game-blueLight text-sm font-bold tracking-[0.2em] uppercase mb-1">Student Dashboard</h2>
+          <h2 className="text-game-blueLight text-sm font-bold tracking-[0.2em] uppercase mb-1">แดชบอร์ดนักเรียน</h2>
           <h1 className="text-4xl md:text-5xl font-display font-bold text-white tracking-wide drop-shadow-lg">
-            WELCOME, <span className="text-transparent bg-clip-text bg-gradient-to-r from-game-gold via-yellow-200 to-yellow-500">{student.name}</span>
+            ยินดีต้อนรับ, <span className="text-transparent bg-clip-text bg-gradient-to-r from-game-gold via-yellow-200 to-yellow-500">{student.name}</span>
           </h1>
           <div className="mt-3 flex items-center justify-center md:justify-start gap-3">
              <span className="bg-slate-800/80 px-3 py-1 rounded text-slate-300 text-xs font-mono border border-slate-700">ID: {student.id}</span>
              <span className="bg-slate-800/80 px-3 py-1 rounded text-game-cyan text-xs font-mono border border-slate-700 flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-game-cyan animate-pulse"></div> Online
+                <div className="w-2 h-2 rounded-full bg-game-cyan animate-pulse"></div> ออนไลน์
              </span>
           </div>
         </div>
         
         <div className="relative z-10 w-full md:w-auto">
-           <label className="block text-slate-400 text-xs uppercase mb-2 ml-1 font-bold">Select Mission Subject</label>
+           <label className="block text-slate-400 text-xs uppercase mb-2 ml-1 font-bold">เลือกวิชาภารกิจ</label>
            <div className="relative">
               <BookOpen className="absolute left-4 top-3.5 text-game-gold w-5 h-5" />
               <select 
@@ -77,7 +91,7 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                 onChange={(e) => setSelectedSubject(e.target.value as SubjectCode)}
                 className="appearance-none bg-slate-900/80 backdrop-blur-md border border-slate-600 text-white rounded-xl pl-12 pr-12 py-3 w-full md:w-80 focus:ring-2 focus:ring-game-gold focus:border-game-gold shadow-lg outline-none cursor-pointer hover:bg-slate-800 transition-colors font-medium"
               >
-                <option value="">-- Choose Subject --</option>
+                <option value="">-- เลือกวิชา --</option>
                 {enrolledSubjects.map(sub => (
                   <option key={sub} value={sub}>{SUBJECT_NAMES[sub]}</option>
                 ))}
@@ -100,11 +114,8 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
           const maxRewards = calculateMaxRewards(totalScore);
           const redeemed = data.redeemedCount || 0;
           
-          // Use stored rewardRights directly from Sheet as Primary Truth
-          let rightsBalance = data.rewardRights;
-          
-          // Check calculated availability just for sync warnings
-          const calculatedAvailable = Math.max(0, maxRewards - redeemed);
+          // DISPLAY LOGIC: Use calculated reality for the UI
+          const rightsBalance = Math.max(0, maxRewards - redeemed);
 
           // Progress Calculation (Current tier logic)
           const currentRankThreshold = nextRankData.threshold - nextRankData.pointsNeeded - (totalScore - (nextRankData.threshold - nextRankData.pointsNeeded)); 
@@ -129,10 +140,10 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                 
                 <div className="mt-8 relative z-10 w-full">
                   <div className="inline-block bg-black/30 backdrop-blur px-4 py-1 rounded-full border border-white/10 mb-2 shadow-lg">
-                     <p className="text-slate-300 text-xs font-bold uppercase tracking-widest">Current Rank</p>
+                     <p className="text-slate-300 text-xs font-bold uppercase tracking-widest">แรงค์ปัจจุบัน</p>
                   </div>
                   <p className={`text-5xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-b ${rankColor.replace('text-', 'from-').replace(' ', ' to-white ')} drop-shadow-md`}>
-                    {rank}
+                    <RankBadge rank={rank} size="sm" showLabel={true} />
                   </p>
                   
                   {/* XP Progress Bar to Next Level */}
@@ -141,10 +152,10 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                       <>
                         <div className="flex justify-between items-end mb-2">
                            <span className="text-xs text-slate-400 font-bold uppercase flex items-center gap-1">
-                             <TrendingUp size={12} className="text-game-gold" /> To {nextRankData.nextRank}
+                             <TrendingUp size={12} className="text-game-gold" /> สู่ระดับ {nextRankData.nextRank}
                            </span>
                            <span className="text-sm font-mono font-bold text-white">
-                             <span className="text-game-gold">{nextRankData.pointsNeeded}</span> PTS NEEDED
+                             ขาดอีก <span className="text-game-gold">{nextRankData.pointsNeeded}</span> คะแนน
                            </span>
                         </div>
                         {/* Bar */}
@@ -167,7 +178,7 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                     ) : (
                       <div className="flex items-center justify-center gap-2 text-game-gold font-bold">
                          <Star className="fill-current animate-pulse" size={16} />
-                         MAX RANK ACHIEVED
+                         บรรลุระดับสูงสุดแล้ว
                          <Star className="fill-current animate-pulse" size={16} />
                       </div>
                     )}
@@ -184,7 +195,7 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                         {/* Shimmer */}
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer-sweep pointer-events-none delay-[2s]"></div>
                         <div className="absolute right-0 top-0 w-24 h-24 bg-game-blue/10 rounded-full blur-2xl -mr-10 -mt-10 transition-all group-hover:bg-game-blue/20"></div>
-                        <p className="text-slate-400 text-sm font-bold uppercase tracking-wider relative z-10">Total Score</p>
+                        <p className="text-slate-400 text-sm font-bold uppercase tracking-wider relative z-10">คะแนนรวม</p>
                         <p className="text-5xl font-mono font-bold text-white mt-2 relative z-10 text-glow">
                              {data.status === 'Normal' ? totalScore : <span className="text-red-400">{data.status}</span>}
                              <span className="text-lg text-slate-500 font-sans ml-2">/ 100</span>
@@ -194,7 +205,7 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                          {/* Shimmer */}
                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer-sweep pointer-events-none delay-[3s]"></div>
                         <div className="absolute right-0 top-0 w-24 h-24 bg-game-purple/10 rounded-full blur-2xl -mr-10 -mt-10 transition-all group-hover:bg-game-purple/20"></div>
-                        <p className="text-slate-400 text-sm font-bold uppercase tracking-wider relative z-10">Grade</p>
+                        <p className="text-slate-400 text-sm font-bold uppercase tracking-wider relative z-10">เกรด</p>
                         <p className="text-5xl font-mono font-bold text-game-purpleLight mt-2 relative z-10 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">
                              {grade}
                         </p>
@@ -215,9 +226,9 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                             <div>
                                 <h3 className="text-slate-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                                     <Coins size={14} className={rightsBalance > 0 ? 'text-game-gold' : 'text-slate-500'} />
-                                    Reward Wallet
+                                    กระเป๋ารางวัล
                                 </h3>
-                                <p className="text-slate-500 text-[10px] mt-1">Available rights to use</p>
+                                <p className="text-slate-500 text-[10px] mt-1">สิทธิ์คงเหลือ</p>
                             </div>
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${rightsBalance > 0 ? 'bg-game-gold/20 text-game-gold shadow-[0_0_10px_rgba(251,191,36,0.2)]' : 'bg-slate-800 text-slate-600'}`}>
                                 <Gift size={20} />
@@ -229,17 +240,17 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                                 <span className={`text-5xl font-mono font-bold transition-all ${rightsBalance > 0 ? 'text-game-gold text-glow-gold' : 'text-slate-600'}`}>
                                     {rightsBalance}
                                 </span>
-                                <span className="text-sm font-bold text-slate-500 uppercase">Rights</span>
+                                <span className="text-sm font-bold text-slate-500 uppercase">สิทธิ์</span>
                             </div>
                          </div>
 
                          <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-2 text-xs relative z-10">
                              <div>
-                                 <p className="text-slate-500 flex items-center gap-1"><Star size={10}/> Lifetime</p>
+                                 <p className="text-slate-500 flex items-center gap-1"><Star size={10}/> ได้รับรวม</p>
                                  <p className="text-white font-mono font-bold text-sm">{maxRewards}</p>
                              </div>
                              <div>
-                                 <p className="text-slate-500 flex items-center gap-1"><History size={10}/> Used</p>
+                                 <p className="text-slate-500 flex items-center gap-1"><History size={10}/> ใช้ไปแล้ว</p>
                                  <p className="text-white font-mono font-bold text-sm">{redeemed}</p>
                              </div>
                          </div>
@@ -251,7 +262,7 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer-sweep pointer-events-none delay-[5s]"></div>
                         
                         <h3 className="text-slate-300 text-sm font-bold uppercase tracking-wider mb-4 flex items-center gap-2">
-                           <Zap size={16} className="text-game-cyan" /> Redemption Gate
+                           <Zap size={16} className="text-game-cyan" /> จุดแลกรางวัล
                         </h3>
 
                         <button 
@@ -264,10 +275,10 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                             }`}
                         >
                             {redeeming ? (
-                                <span className="animate-pulse flex items-center gap-2 text-sm"><div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div> PROCESSING</span>
+                                <span className="animate-pulse flex items-center gap-2 text-sm"><div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></div> กำลังดำเนินการ</span>
                             ) : (
                                 <>
-                                {rightsBalance > 0 ? 'REDEEM NOW' : 'LOCKED'}
+                                {rightsBalance > 0 ? 'แลกเลย' : 'ล็อคอยู่'}
                                 {rightsBalance > 0 ? <Zap size={20} className="fill-slate-900" /> : <Lock size={18} />}
                                 </>
                             )}
@@ -277,16 +288,10 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                         <div className="mt-4 h-6">
                            {rightsBalance > 0 ? (
                                 <span className="text-[10px] text-game-gold font-bold flex items-center justify-center gap-1 animate-pulse">
-                                  <CheckCircle size={10} /> Ready to redeem (Cost: 1 Right)
+                                  <CheckCircle size={10} /> พร้อมแลกรางวัล (ใช้ 1 สิทธิ์)
                                 </span>
                            ) : (
-                                calculatedAvailable > 0 ? (
-                                    <span className="text-[10px] text-orange-400 font-mono flex items-center justify-center gap-1 animate-pulse">
-                                        <AlertCircle size={10} /> Waiting for Teacher Sync...
-                                    </span>
-                                ) : (
-                                    <span className="text-[10px] text-slate-600 font-mono">Insufficient rights to redeem</span>
-                                )
+                                <span className="text-[10px] text-slate-600 font-mono">สิทธิ์ไม่เพียงพอ</span>
                            )}
                         </div>
                     </div>
@@ -299,14 +304,14 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer-sweep pointer-events-none delay-[1.5s]"></div>
 
                     <h3 className="text-lg font-bold text-white flex items-center gap-2 mb-4 relative z-10">
-                        <BookOpen className="text-game-blue" size={20} /> Score Breakdown
+                        <BookOpen className="text-game-blue" size={20} /> รายละเอียดคะแนน
                     </h3>
                     
                     <div className="space-y-4 relative z-10">
                         {/* Assignments */}
                         <div>
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-sm text-slate-400">Assignments (6 x 10pts)</span>
+                                <span className="text-sm text-slate-400">คะแนนเก็บ (6 x 10 คะแนน)</span>
                                 <span className="text-game-gold font-mono font-bold">{data.scores.assignments.reduce((a,b)=>a+b, 0)}/60</span>
                             </div>
                             <div className="grid grid-cols-6 gap-2">
@@ -316,7 +321,7 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                                             {score}
                                         </div>
                                         <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] text-slate-600 opacity-0 group-hover/item:opacity-100 transition-opacity whitespace-nowrap">
-                                            Slot {i+1}
+                                            ช่อง {i+1}
                                         </div>
                                     </div>
                                 ))}
@@ -325,11 +330,11 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
 
                         <div className="grid grid-cols-2 gap-4 pt-2">
                              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex justify-between items-center transition-colors hover:border-game-blue/30">
-                                 <span className="text-sm text-slate-400">Midterm Exam</span>
+                                 <span className="text-sm text-slate-400">สอบกลางภาค</span>
                                  <span className="text-xl font-mono font-bold text-white">{data.scores.midterm}<span className="text-xs text-slate-600">/20</span></span>
                              </div>
                              <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700 flex justify-between items-center transition-colors hover:border-game-purple/30">
-                                 <span className="text-sm text-slate-400">Final Exam</span>
+                                 <span className="text-sm text-slate-400">สอบปลายภาค</span>
                                  <span className="text-xl font-mono font-bold text-white">{data.scores.final}<span className="text-xs text-slate-600">/20</span></span>
                              </div>
                         </div>
@@ -345,8 +350,8 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
           <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mb-4 animate-pulse">
             <Star className="text-slate-600" size={32} />
           </div>
-          <p className="text-lg font-medium">Select a subject to load your stats</p>
-          <p className="text-sm opacity-50">Choose from the dropdown above</p>
+          <p className="text-lg font-medium">เลือกวิชาเพื่อดูข้อมูล</p>
+          <p className="text-sm opacity-50">เลือกจากเมนูด้านบน</p>
         </div>
       )}
     </div>

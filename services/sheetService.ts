@@ -1,4 +1,5 @@
 import { Student, SubjectCode, SpecialStatus } from '../types';
+import { calculateTotalScore, calculateMaxRewards } from './gradingLogic';
 
 // ============================================================================
 // CONFIGURATION
@@ -128,11 +129,17 @@ export const SheetService = {
        const student = MOCK_DB.find(s => s.id === id);
        if (!student || !student.subjects[subject]) return false;
        
-       const rights = student.subjects[subject]!.rewardRights;
+       const subData = student.subjects[subject]!;
+
+       // Calculate real availability for mock test
+       const total = calculateTotalScore(subData.scores);
+       const max = calculateMaxRewards(total);
+       const redeemed = subData.redeemedCount || 0;
        
-       if (rights > 0) {
-         student.subjects[subject]!.rewardRights = rights - 1;
-         student.subjects[subject]!.redeemedCount++;
+       // Allow redeem if calculated > redeemed OR if existing bucket > 0 (fallback)
+       if (max - redeemed > 0 || subData.rewardRights > 0) {
+         subData.rewardRights = Math.max(0, subData.rewardRights - 1);
+         subData.redeemedCount = (subData.redeemedCount || 0) + 1;
          return true;
        }
        return false;

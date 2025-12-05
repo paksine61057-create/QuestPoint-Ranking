@@ -9,6 +9,16 @@ interface Props {
   showLabel?: boolean;
 }
 
+const rankTranslations: Record<Rank, string> = {
+  [Rank.BRONZE]: 'บรอนซ์',
+  [Rank.SILVER]: 'ซิลเวอร์',
+  [Rank.GOLD]: 'โกลด์',
+  [Rank.PLATINUM]: 'แพลตตินัม',
+  [Rank.DIAMOND]: 'ไดมอนด์',
+  [Rank.COMMANDER]: 'คอมมานเดอร์',
+  [Rank.CONQUEROR]: 'คอนเคอเรอร์',
+};
+
 export const RankBadge: React.FC<Props> = ({ rank, size = 'md', showLabel = true }) => {
   const colorClass = getRankColor(rank);
 
@@ -90,11 +100,11 @@ export const RankBadge: React.FC<Props> = ({ rank, size = 'md', showLabel = true
 
       {showLabel && (
         <div className="relative mt-2">
-           <span className={`block ${textSizes[size]} font-game font-black uppercase tracking-[0.2em] text-center relative z-10 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 group-hover:to-white transition-all`}>
-            {rank}
+           <span className={`block ${textSizes[size]} font-game font-black uppercase tracking-[0.1em] text-center relative z-10 text-transparent bg-clip-text bg-gradient-to-b from-white to-white/50 group-hover:to-white transition-all`}>
+            {rankTranslations[rank]}
            </span>
-           <span className={`block ${textSizes[size]} font-game font-black uppercase tracking-[0.2em] text-center absolute inset-0 blur-sm opacity-50 ${colorClass}`}>
-             {rank}
+           <span className={`block ${textSizes[size]} font-game font-black uppercase tracking-[0.1em] text-center absolute inset-0 blur-sm opacity-50 ${colorClass}`}>
+             {rankTranslations[rank]}
            </span>
         </div>
       )}

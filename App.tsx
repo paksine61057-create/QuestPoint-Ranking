@@ -5,6 +5,11 @@ import { StudentView } from './components/StudentView';
 import { TeacherDashboard } from './components/TeacherDashboard';
 import { Layout, Sparkles, LogOut, Gamepad2, Sword, Shield, Crown, Zap, Scroll, User } from 'lucide-react';
 
+// Helper component for error icon - Moved to top for safety
+const AlertIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+);
+
 const App: React.FC = () => {
   const [role, setRole] = useState<Role | null>(null);
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
@@ -18,7 +23,7 @@ const App: React.FC = () => {
       if (loginId === 'admin4444') { 
         setRole('teacher');
       } else {
-        setError('รหัสผ่านครูไม่ถูกต้อง (Invalid Password)');
+        setError('รหัสผ่านครูไม่ถูกต้อง');
       }
     } else {
       const student = await SheetService.getStudentById(loginId);
@@ -84,14 +89,14 @@ const App: React.FC = () => {
               </h1>
             </div>
             <p className="text-game-blueLight mt-4 text-xs font-bold tracking-[0.3em] uppercase opacity-80 border-t border-b border-white/10 py-2 mx-10">
-              Education RPG System
+              ระบบวัดผลการเรียนสไตล์ RPG
             </p>
           </div>
 
           <div className="space-y-6">
             <div className="relative group/input">
               <label className="block text-game-gold text-[10px] mb-2 uppercase tracking-[0.2em] font-bold ml-1 flex items-center gap-2">
-                 <User size={12} /> Identify Your Character
+                 <User size={12} /> ระบุตัวตนของคุณ
               </label>
               <div className="relative">
                 <input
@@ -119,7 +124,7 @@ const App: React.FC = () => {
               >
                 <div className="relative z-10 flex flex-col items-center justify-center gap-1">
                   <Sword size={24} className="text-slate-400 group-hover/btn:text-game-blue transition-colors mb-1" />
-                  <span className="font-game text-sm uppercase tracking-wider">Student</span>
+                  <span className="font-game text-sm uppercase tracking-wider">นักเรียน</span>
                 </div>
                 <div className="absolute inset-0 bg-game-blue/10 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
                 {/* Shine effect */}
@@ -133,7 +138,7 @@ const App: React.FC = () => {
               >
                  <div className="relative z-10 flex flex-col items-center justify-center gap-1">
                   <Crown size={24} className="text-slate-900 mb-1" />
-                  <span className="font-game text-sm uppercase tracking-wider">Teacher</span>
+                  <span className="font-game text-sm uppercase tracking-wider">ครูอาจารย์</span>
                 </div>
                 <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/btn:opacity-100 transition-opacity"></div>
               </button>
@@ -142,7 +147,7 @@ const App: React.FC = () => {
             <div className="mt-10 flex items-center justify-center gap-6 opacity-60">
                <div className="flex items-center gap-2">
                  <div className="w-1.5 h-1.5 bg-slate-500 rounded-full"></div>
-                 <span className="text-[10px] text-slate-500 font-mono uppercase">V.1.1.2 System Online</span>
+                 <span className="text-[10px] text-slate-500 font-mono uppercase">V.1.1.6 ระบบพร้อมใช้งาน</span>
                </div>
             </div>
             
@@ -179,9 +184,9 @@ const App: React.FC = () => {
           
           <div className="flex items-center gap-8">
              <div className="hidden md:flex flex-col items-end">
-                <span className="text-[10px] text-game-blueLight uppercase tracking-[0.2em] font-bold mb-0.5">Logged in as</span>
+                <span className="text-[10px] text-game-blueLight uppercase tracking-[0.2em] font-bold mb-0.5">เข้าสู่ระบบโดย</span>
                 <span className="text-white font-game font-bold text-lg text-glow-gold tracking-wide flex items-center gap-2">
-                   {role === 'teacher' ? <><Crown size={16} className="text-game-gold" /> COMMANDER</> : <><User size={16} className="text-game-cyan"/> {currentStudent?.name}</>}
+                   {role === 'teacher' ? <><Crown size={16} className="text-game-gold" /> ผู้ดูแลระบบ</> : <><User size={16} className="text-game-cyan"/> {currentStudent?.name}</>}
                 </span>
              </div>
              <div className="h-10 w-[1px] bg-slate-700 hidden md:block"></div>
@@ -190,7 +195,7 @@ const App: React.FC = () => {
                className="flex items-center gap-2 text-slate-400 hover:text-red-400 transition-all text-sm font-bold border border-slate-700 px-5 py-2.5 rounded-xl hover:bg-slate-800 hover:border-red-500/50 group bg-slate-900/50"
              >
                <LogOut size={16} className="group-hover:-translate-x-1 transition-transform" />
-               <span className="font-game text-xs tracking-wider">LOGOUT</span>
+               <span className="font-game text-xs tracking-wider">ออกจากระบบ</span>
              </button>
           </div>
         </div>
@@ -206,10 +211,5 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-// Helper component for error icon
-const AlertIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-)
 
 export default App;
