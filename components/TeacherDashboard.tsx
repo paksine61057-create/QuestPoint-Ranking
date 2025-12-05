@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Student, SubjectCode, SUBJECT_NAMES, SpecialStatus } from '../types';
 import { SheetService } from '../services/sheetService';
 import { calculateTotalScore, calculateGrade, calculateRank, calculateMaxRewards } from '../services/gradingLogic';
@@ -15,30 +15,55 @@ export const TeacherDashboard: React.FC = () => {
   
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
-  const fetchData = async () => {
-    // Only set loading true on first load to prevent flickering on poll
-    if(students.length === 0) setLoading(true);
-    
-    const data = await SheetService.getAllStudents();
-    
-    // Check if data actually changed to avoid unnecessary re-renders (basic check)
-    if (JSON.stringify(data) !== JSON.stringify(students)) {
-        setStudents(data);
-    }
-    
-    setLoading(false);
-  };
+  // Use a Ref to track mounting status to prevent state updates on unmount
+  const isMounted = useRef(true);
 
   useEffect(() => {
-    fetchData();
-    // Real-time Polling every 5 seconds (Optional toggle)
-    const interval = setInterval(() => {
-        if (isAutoRefresh) {
-            fetchData();
+    return () => { isMounted.current = false; };
+  }, []);
+
+  const fetchData = async (isPolling = false) => {
+    // Only set loading indicator on manual fetch or initial load, not polling
+    if (!isPolling && students.length === 0) setLoading(true);
+    
+    try {
+        const data = await SheetService.getAllStudents();
+        
+        if (isMounted.current) {
+            setStudents(prev => {
+                // Deep comparison to prevent unnecessary re-renders
+                if (JSON.stringify(data) !== JSON.stringify(prev)) {
+                    return data;
+                }
+                return prev;
+            });
+            setLoading(false);
         }
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [isAutoRefresh, students]);
+    } catch (error) {
+        console.error("Failed to fetch data", error);
+        if (isMounted.current) setLoading(false);
+    }
+  };
+
+  // 1. Initial Load
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  // 2. Polling Effect (Separated to avoid dependencies on 'students')
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isAutoRefresh) {
+        // Run immediately when toggled on
+        fetchData(true);
+        interval = setInterval(() => {
+            fetchData(true);
+        }, 5000);
+    }
+    return () => {
+        if (interval) clearInterval(interval);
+    };
+  }, [isAutoRefresh]);
 
   // Filter Logic
   const filteredStudents = students.filter(s => {
@@ -209,7 +234,7 @@ export const TeacherDashboard: React.FC = () => {
             />
           </div>
           
-          <button onClick={fetchData} className="bg-game-blue hover:bg-blue-600 text-white p-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95">
+          <button onClick={() => fetchData(false)} className="bg-game-blue hover:bg-blue-600 text-white p-3 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95">
             <RefreshCw size={18} />
           </button>
         </div>
