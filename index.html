@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GradeQuest</title>
+    <title>GradeQuest: Festive Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Mountains+of+Christmas:wght@400;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
@@ -14,33 +14,28 @@
               sans: ['Inter', 'sans-serif'],
               display: ['Rajdhani', 'sans-serif'],
               game: ['Orbitron', 'sans-serif'],
+              festive: ['"Mountains of Christmas"', 'cursive'],
             },
             colors: {
               game: {
-                dark: '#020617',
-                panel: '#0f172a',
+                dark: '#052e16', // Forest Green
+                panel: '#064e3b', // Deep Emerald
                 gold: '#fbbf24',
                 goldLight: '#fde68a',
-                purple: '#a855f7',
-                purpleLight: '#e9d5ff',
-                blue: '#3b82f6',
+                red: '#991b1b', // Festive Red
+                redLight: '#ef4444',
+                green: '#15803d',
+                greenLight: '#22c55e',
                 cyan: '#22d3ee',
-                red: '#ef4444',
-                bronze: '#cd7f32',
-                silver: '#cbd5e1',
-                platinum: '#f1f5f9',
-                diamond: '#67e8f9',
+                blue: '#3b82f6',
               }
             },
             animation: {
               'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
               'float': 'float 6s ease-in-out infinite',
-              'float-delayed': 'float 6s ease-in-out 3s infinite',
               'shine': 'shine 8s linear infinite',
-              'glow': 'glow 2s ease-in-out infinite alternate',
-              'spin-slow': 'spin 12s linear infinite',
-              'shimmer-sweep': 'shimmer-sweep 6s cubic-bezier(0.4, 0, 0.2, 1) infinite',
               'twinkle': 'twinkle 4s ease-in-out infinite',
+              'snow': 'snow 10s linear infinite',
             },
             keyframes: {
               float: {
@@ -51,18 +46,13 @@
                 '0%': { backgroundPosition: '200% center' },
                 '100%': { backgroundPosition: '-200% center' },
               },
-              glow: {
-                '0%': { boxShadow: '0 0 5px rgba(251, 191, 36, 0.2)' },
-                '100%': { boxShadow: '0 0 20px rgba(251, 191, 36, 0.6), 0 0 10px rgba(251, 191, 36, 0.4)' },
-              },
-              'shimmer-sweep': {
-                '0%': { transform: 'translate(-100%, -100%) rotate(45deg)' },
-                '20%': { transform: 'translate(100%, 100%) rotate(45deg)' },
-                '100%': { transform: 'translate(100%, 100%) rotate(45deg)' }
-              },
               twinkle: {
-                '0%, 100%': { opacity: 0.2, transform: 'scale(0.8)' },
-                '50%': { opacity: 1, transform: 'scale(1.2)' }
+                '0%, 100%': { opacity: 0.3, transform: 'scale(0.8)' },
+                '50%': { opacity: 1, transform: 'scale(1.1)' }
+              },
+              snow: {
+                '0%': { transform: 'translateY(-10vh) translateX(0)', opacity: 1 },
+                '100%': { transform: 'translateY(100vh) translateX(20px)', opacity: 0.3 }
               }
             }
           }
@@ -82,6 +72,17 @@
   }
 }
 </script>
+<style>
+  .snow-particle {
+    position: fixed;
+    top: -10px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 50;
+    filter: blur(1px);
+  }
+</style>
 </head>
   <body>
     <div id="root"></div>
