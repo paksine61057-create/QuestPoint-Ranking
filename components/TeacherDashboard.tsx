@@ -222,16 +222,33 @@ export const TeacherDashboard: React.FC = () => {
                   {sub.scores.assignments.map((score, idx) => (
                       <td key={idx} className="p-1 border-x border-white/5 bg-emerald-900/5">
                           <input 
-                              type="number" className="w-full bg-transparent text-center font-mono text-sm focus:bg-emerald-500/20 outline-none text-emerald-100 font-bold py-2"
-                              value={score} onChange={(e) => handleInlineUpdate(student.id, 'assignment', e.target.value, idx)}
+                              type="number" className="w-full bg-transparent text-center font-mono text-sm focus:bg-emerald-500/20 outline-none text-emerald-100 font-bold py-2 placeholder:text-white/10"
+                              value={score || ''} 
+                              placeholder="0"
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) => handleInlineUpdate(student.id, 'assignment', e.target.value, idx)}
                           />
                       </td>
                   ))}
                   <td className="p-1 border-x border-white/5 bg-rose-900/5">
-                      <input type="number" className="w-full bg-transparent text-center font-mono text-sm text-rose-300 font-bold py-2" value={sub.scores.midterm} onChange={(e) => handleInlineUpdate(student.id, 'midterm', e.target.value)}/>
+                      <input 
+                        type="number" 
+                        className="w-full bg-transparent text-center font-mono text-sm text-rose-300 font-bold py-2 placeholder:text-rose-300/20" 
+                        value={sub.scores.midterm || ''} 
+                        placeholder="0"
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => handleInlineUpdate(student.id, 'midterm', e.target.value)}
+                      />
                   </td>
                   <td className="p-1 border-x border-white/5 bg-rose-900/5">
-                      <input type="number" className="w-full bg-transparent text-center font-mono text-sm text-rose-300 font-bold py-2" value={sub.scores.final} onChange={(e) => handleInlineUpdate(student.id, 'final', e.target.value)}/>
+                      <input 
+                        type="number" 
+                        className="w-full bg-transparent text-center font-mono text-sm text-rose-300 font-bold py-2 placeholder:text-rose-300/20" 
+                        value={sub.scores.final || ''} 
+                        placeholder="0"
+                        onFocus={(e) => e.target.select()}
+                        onChange={(e) => handleInlineUpdate(student.id, 'final', e.target.value)}
+                      />
                   </td>
                   <td className="p-5 text-center font-black text-white text-xl">{sub.status === 'Normal' ? total : '-'}</td>
                   <td className="p-5 text-center font-black text-cyan-400 text-xl">{calculateGrade(total, sub.status)}</td>
@@ -255,7 +272,7 @@ export const TeacherDashboard: React.FC = () => {
 
       {/* Reward Editor Modal */}
       {editingStudent && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
           <div className="bg-[#134e4a] border border-white/10 rounded-[4rem] w-full max-w-md overflow-hidden shadow-[0_0_100px_rgba(245,158,11,0.2)] animate-fadeIn">
             <div className="p-12 text-center space-y-8">
                 <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
