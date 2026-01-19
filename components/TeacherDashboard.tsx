@@ -88,7 +88,7 @@ export const TeacherDashboard: React.FC = () => {
     if (metaData) {
         await SheetService.updateSubjectMetadata(selectedSubject, metaData);
         setShowMetaModal(false);
-        alert('Mission Links Updated!');
+        alert('บันทึกลิงก์ภารกิจเรียบร้อยแล้ว!');
     }
   };
 
@@ -106,15 +106,15 @@ export const TeacherDashboard: React.FC = () => {
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-500/10 to-transparent"></div>
         <div className="relative z-10">
            <h1 className="text-3xl font-display font-black text-white flex items-center gap-4 tracking-widest uppercase">
-             <Compass className="text-cyan-400" /> Expedition Center
+             <Compass className="text-cyan-400" /> ศูนย์จัดการการสำรวจ
            </h1>
            <div className="flex items-center gap-3 mt-2">
-              <span className="text-[10px] uppercase font-black text-emerald-400 tracking-widest">Seasonal Control Panel</span>
+              <span className="text-[10px] uppercase font-black text-emerald-400 tracking-widest">แผงควบคุมระดับวิชา</span>
               <button 
                 onClick={() => setIsAutoRefresh(!isAutoRefresh)}
                 className={`px-3 py-1 rounded-full text-[9px] font-black tracking-tighter border transition-all ${isAutoRefresh ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.4)]' : 'bg-white/5 text-white/30 border-white/10'}`}
               >
-                LIVE: {isAutoRefresh ? 'CONNECTED' : 'PAUSED'}
+                LIVE: {isAutoRefresh ? 'เชื่อมต่อแล้ว' : 'หยุดชั่วคราว'}
               </button>
            </div>
         </div>
@@ -132,12 +132,12 @@ export const TeacherDashboard: React.FC = () => {
             onClick={() => setShowMetaModal(true)}
             className="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 px-6 py-4 rounded-[1.5rem] border border-amber-500/20 transition-all font-bold text-sm flex items-center gap-2"
           >
-            <Settings2 size={18} /> Manage Missions
+            <Settings2 size={18} /> จัดการภารกิจ
           </button>
           <div className="relative">
             <Search className="absolute left-4 top-4 text-white/20 w-5 h-5" />
             <input 
-              type="text" placeholder="Find traveler..." 
+              type="text" placeholder="ค้นหานักเรียน..." 
               className="bg-black/40 text-white pl-12 p-4 rounded-[1.5rem] border border-white/10 outline-none w-full focus:ring-2 focus:ring-cyan-500 font-bold"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
@@ -154,23 +154,23 @@ export const TeacherDashboard: React.FC = () => {
         <table className="w-full text-left border-collapse min-w-[1300px]">
           <thead>
             <tr className="bg-black/60 text-white/30 text-[9px] uppercase font-black tracking-widest">
-              <th className="p-6 text-center">Pos</th>
-              <th className="p-6 text-center">Rank</th>
-              <th className="p-6">Traveler ID</th>
-              <th className="p-6">Name</th>
-              {[1, 2, 3, 4, 5, 6].map(i => <th key={i} className="p-2 text-center bg-emerald-900/10 text-emerald-400/80">A{i}</th>)}
-              <th className="p-6 text-center bg-rose-900/10 text-rose-400/80">Mid</th>
-              <th className="p-6 text-center bg-rose-900/10 text-rose-400/80">Fin</th>
-              <th className="p-6 text-center text-white font-black bg-white/5">Score</th>
-              <th className="p-6 text-center text-cyan-400 bg-white/5">Grade</th>
-              <th className="p-6 text-center text-amber-500 bg-amber-900/10">Harvest</th>
-              <th className="p-6 text-center">Status</th>
-              <th className="p-6 text-center">Gift</th>
+              <th className="p-6 text-center">ลำดับ</th>
+              <th className="p-6 text-center">แรงค์</th>
+              <th className="p-6">รหัสนักเรียน</th>
+              <th className="p-6">ชื่อ-นามสกุล</th>
+              {[1, 2, 3, 4, 5, 6].map(i => <th key={i} className="p-2 text-center bg-emerald-900/10 text-emerald-400/80">งาน {i}</th>)}
+              <th className="p-6 text-center bg-rose-900/10 text-rose-400/80">กลางภาค</th>
+              <th className="p-6 text-center bg-rose-900/10 text-rose-400/80">ปลายภาค</th>
+              <th className="p-6 text-center text-white font-black bg-white/5">รวม</th>
+              <th className="p-6 text-center text-cyan-400 bg-white/5">เกรด</th>
+              <th className="p-6 text-center text-amber-500 bg-amber-900/10">สิทธิ์แลก</th>
+              <th className="p-6 text-center">สถานะ</th>
+              <th className="p-6 text-center">จัดการ</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5 font-display">
             {loading ? (
-              <tr><td colSpan={19} className="p-32 text-center font-festive text-3xl text-white/10 animate-pulse tracking-widest">Nurturing Data...</td></tr>
+              <tr><td colSpan={19} className="p-32 text-center font-festive text-3xl text-white/10 animate-pulse tracking-widest">กำลังดึงข้อมูลนักสำรวจ...</td></tr>
             ) : filteredStudents.map((student, index) => {
               const sub = student.subjects[selectedSubject]!;
               const total = calculateTotalScore(sub.scores);
@@ -218,9 +218,9 @@ export const TeacherDashboard: React.FC = () => {
                   <td className="p-5 text-center font-black text-2xl text-amber-500 bg-amber-900/5">{calculatedRights}</td>
                   <td className="p-2 text-center">
                     <select className="bg-black/60 text-[10px] border border-white/10 rounded-xl px-2 py-1.5 font-black tracking-widest text-emerald-400" value={sub.status} onChange={(e) => handleInlineUpdate(student.id, 'status', e.target.value)}>
-                        <option value="Normal">NORMAL</option>
-                        <option value="ร">RE (ร)</option>
-                        <option value="มส.">NA (มส.)</option>
+                        <option value="Normal">ปกติ</option>
+                        <option value="ร">ร</option>
+                        <option value="มส.">มส.</option>
                     </select>
                   </td>
                   <td className="p-2 text-center">
@@ -241,35 +241,35 @@ export const TeacherDashboard: React.FC = () => {
                 
                 <div className="mb-10 text-center">
                     <h2 className="text-3xl font-display font-black text-white flex items-center justify-center gap-4">
-                        <Settings2 className="text-amber-400" /> MISSION SETTINGS
+                        <Settings2 className="text-amber-400" /> ตั้งค่าภารกิจการเรียนรู้
                     </h2>
-                    <p className="text-white/40 text-xs mt-2 uppercase tracking-[0.3em] font-bold">Define quest names and links for {SUBJECT_NAMES[selectedSubject]}</p>
+                    <p className="text-white/40 text-xs mt-2 uppercase tracking-[0.3em] font-bold">กำหนดชื่อและลิงก์ภารกิจสำหรับวิชา {SUBJECT_NAMES[selectedSubject]}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {metaData.assignments.map((assign, idx) => (
                         <div key={idx} className="bg-black/40 p-6 rounded-[2rem] border border-white/5 space-y-4">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="bg-emerald-500 text-black text-[10px] px-3 py-1 rounded-full font-black">ASSIGNMENT {idx + 1}</span>
+                                <span className="bg-emerald-500 text-black text-[10px] px-3 py-1 rounded-full font-black">ภารกิจที่ {idx + 1}</span>
                             </div>
                             <div>
-                                <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">Mission Name</label>
+                                <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">ชื่อภารกิจ</label>
                                 <input 
                                     type="text" 
                                     value={assign.name}
-                                    placeholder="e.g. History Quiz 1"
+                                    placeholder="เช่น ใบงานที่ 1: ประวัติศาสตร์..."
                                     onChange={(e) => updateMetaItem(idx, 'name', e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-emerald-500"
                                 />
                             </div>
                             <div>
-                                <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">Worksheet Link</label>
+                                <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">ลิงก์ใบงาน/ชิ้นงาน</label>
                                 <div className="relative">
                                     <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
                                     <input 
                                         type="text" 
                                         value={assign.link}
-                                        placeholder="https://..."
+                                        placeholder="วางลิงก์ Google Form หรือ Drive ที่นี่..."
                                         onChange={(e) => updateMetaItem(idx, 'link', e.target.value)}
                                         className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-xl text-cyan-400 outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-xs"
                                     />
@@ -280,8 +280,8 @@ export const TeacherDashboard: React.FC = () => {
                 </div>
 
                 <div className="mt-12 flex gap-4">
-                    <button onClick={() => setShowMetaModal(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white py-5 rounded-3xl font-bold transition-all">Cancel</button>
-                    <button onClick={handleMetaSave} className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-700 text-white py-5 rounded-3xl font-game font-black uppercase tracking-widest hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">Commit Updates</button>
+                    <button onClick={() => setShowMetaModal(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white py-5 rounded-3xl font-bold transition-all">ยกเลิก</button>
+                    <button onClick={handleMetaSave} className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-700 text-white py-5 rounded-3xl font-game font-black uppercase tracking-widest hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">ยืนยันการบันทึกข้อมูล</button>
                 </div>
             </div>
         </div>

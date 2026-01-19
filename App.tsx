@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Role, Student } from './types';
 import { SheetService } from './services/sheetService';
@@ -104,7 +105,7 @@ const App: React.FC = () => {
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>
           
           <div className="text-center mb-10">
-            <h2 className="font-festive text-2xl text-cyan-200 mb-2 drop-shadow-md">The Season of Learning</h2>
+            <h2 className="font-festive text-2xl text-cyan-200 mb-2 drop-shadow-md">ฤดูกาลแห่งการเรียนรู้</h2>
             <h1 className="text-6xl font-game font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-cyan-200 to-emerald-400 tracking-wider italic drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
               GRADE
             </h1>
@@ -113,7 +114,7 @@ const App: React.FC = () => {
             </h1>
             <div className="mt-4 flex items-center justify-center gap-2">
               <div className="h-[1px] w-12 bg-white/20"></div>
-              <span className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-bold">Seasonal Edition</span>
+              <span className="text-[10px] uppercase tracking-[0.4em] text-white/40 font-bold">ฉบับตามฤดูกาล</span>
               <div className="h-[1px] w-12 bg-white/20"></div>
             </div>
           </div>
@@ -127,7 +128,7 @@ const App: React.FC = () => {
                 type="text"
                 value={loginId}
                 onChange={(e) => setLoginId(e.target.value)}
-                placeholder="Student ID..."
+                placeholder="กรอกรหัสนักเรียน..."
                 className="w-full bg-black/40 border border-white/10 text-white p-5 pl-6 rounded-2xl focus:ring-2 focus:ring-cyan-500 outline-none transition-all font-game text-xl shadow-inner placeholder:text-white/10 tracking-widest"
               />
             </div>
@@ -188,15 +189,15 @@ const App: React.FC = () => {
           
           <div className="flex items-center gap-6">
              <div className="hidden md:flex flex-col items-end">
-                <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-bold">Active Explorer</span>
+                <span className="text-[10px] text-cyan-400 uppercase tracking-widest font-bold">กำลังสำรวจโดย</span>
                 <span className="text-white font-game font-bold text-lg flex items-center gap-2">
-                   {role === 'teacher' ? <><Crown size={16} className="text-amber-400" /> MISSION CONTROL</> : <><User size={16} className="text-emerald-400"/> {currentStudent?.name}</>}
+                   {role === 'teacher' ? <><Crown size={16} className="text-amber-400" /> ระบบจัดการภารกิจ</> : <><User size={16} className="text-emerald-400"/> {currentStudent?.name}</>}
                 </span>
              </div>
              <button 
                onClick={handleLogout}
                className="p-2.5 text-white/50 hover:text-rose-400 transition-colors bg-white/5 rounded-2xl hover:bg-white/10"
-               title="Logout"
+               title="ออกจากระบบ"
              >
                <LogOut size={20} />
              </button>
