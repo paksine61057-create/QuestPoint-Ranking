@@ -66,17 +66,24 @@ export const SheetService = {
   getSubjectMetadata: async (subject: SubjectCode): Promise<SubjectMetadata> => {
     // Attempt to fetch from API if supported, or use localStorage as a bridge
     const cached = localStorage.getItem(META_KEY_PREFIX + subject);
-    if (cached) return JSON.parse(cached);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      // Migration: convert old 'link' to 'links' array if needed
+      parsed.assignments = parsed.assignments.map((a: any) => ({
+        name: a.name,
+        links: a.links || (a.link ? [a.link] : [''])
+      }));
+      return parsed;
+    }
 
     // Default Empty State
     return {
-      assignments: Array(6).fill(null).map((_, i) => ({ name: `Assignment ${i+1}`, link: '' }))
+      assignments: Array(6).fill(null).map((_, i) => ({ name: `ภารกิจที่ ${i+1}`, links: [''] }))
     };
   },
 
   updateSubjectMetadata: async (subject: SubjectCode, meta: SubjectMetadata): Promise<boolean> => {
     localStorage.setItem(META_KEY_PREFIX + subject, JSON.stringify(meta));
-    // In a real app, you'd send this to the GAS script too
     try {
       await fetch(API_URL, {
         method: 'POST',
@@ -85,7 +92,7 @@ export const SheetService = {
       });
       return true;
     } catch (e) {
-      return true; // Return true as we've saved to localStorage at least
+      return true;
     }
   }
 };

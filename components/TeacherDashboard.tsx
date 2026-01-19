@@ -4,8 +4,7 @@ import { Student, SubjectCode, SUBJECT_NAMES, SpecialStatus, SubjectMetadata } f
 import { SheetService } from '../services/sheetService';
 import { calculateTotalScore, calculateGrade, calculateRank, calculateMaxRewards } from '../services/gradingLogic';
 import { RankBadge } from './RankBadge';
-import { BarChart, Bar, ResponsiveContainer, Cell } from 'recharts';
-import { RefreshCw, Search, Trophy, User, Target, Compass, Sparkles, Link as LinkIcon, Settings2, X } from 'lucide-react';
+import { RefreshCw, Search, Trophy, User, Target, Compass, Sparkles, Link as LinkIcon, Settings2, X, Plus, Trash2 } from 'lucide-react';
 
 export const TeacherDashboard: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -88,14 +87,40 @@ export const TeacherDashboard: React.FC = () => {
     if (metaData) {
         await SheetService.updateSubjectMetadata(selectedSubject, metaData);
         setShowMetaModal(false);
-        alert('บันทึกลิงก์ภารกิจเรียบร้อยแล้ว!');
+        alert('บันทึกข้อมูลภารกิจเรียบร้อยแล้ว!');
     }
   };
 
-  const updateMetaItem = (index: number, field: 'name' | 'link', value: string) => {
+  const updateMetaName = (index: number, value: string) => {
     if (!metaData) return;
     const newAssignments = [...metaData.assignments];
-    newAssignments[index] = { ...newAssignments[index], [field]: value };
+    newAssignments[index] = { ...newAssignments[index], name: value };
+    setMetaData({ ...metaData, assignments: newAssignments });
+  };
+
+  const updateMetaLink = (assignmentIdx: number, linkIdx: number, value: string) => {
+    if (!metaData) return;
+    const newAssignments = [...metaData.assignments];
+    const newLinks = [...newAssignments[assignmentIdx].links];
+    newLinks[linkIdx] = value;
+    newAssignments[assignmentIdx] = { ...newAssignments[assignmentIdx], links: newLinks };
+    setMetaData({ ...metaData, assignments: newAssignments });
+  };
+
+  const addMetaLink = (assignmentIdx: number) => {
+    if (!metaData) return;
+    const newAssignments = [...metaData.assignments];
+    const newLinks = [...newAssignments[assignmentIdx].links, ''];
+    newAssignments[assignmentIdx] = { ...newAssignments[assignmentIdx], links: newLinks };
+    setMetaData({ ...metaData, assignments: newAssignments });
+  };
+
+  const removeMetaLink = (assignmentIdx: number, linkIdx: number) => {
+    if (!metaData) return;
+    const newAssignments = [...metaData.assignments];
+    const newLinks = newAssignments[assignmentIdx].links.filter((_, i) => i !== linkIdx);
+    if (newLinks.length === 0) newLinks.push('');
+    newAssignments[assignmentIdx] = { ...newAssignments[assignmentIdx], links: newLinks };
     setMetaData({ ...metaData, assignments: newAssignments });
   };
 
@@ -247,10 +272,10 @@ export const TeacherDashboard: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {metaData.assignments.map((assign, idx) => (
-                        <div key={idx} className="bg-black/40 p-6 rounded-[2rem] border border-white/5 space-y-4">
+                    {metaData.assignments.map((assign, aIdx) => (
+                        <div key={aIdx} className="bg-black/40 p-6 rounded-[2rem] border border-white/5 space-y-4">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="bg-emerald-500 text-black text-[10px] px-3 py-1 rounded-full font-black">ภารกิจที่ {idx + 1}</span>
+                                <span className="bg-emerald-500 text-black text-[10px] px-3 py-1 rounded-full font-black">ภารกิจที่ {aIdx + 1}</span>
                             </div>
                             <div>
                                 <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">ชื่อภารกิจ</label>
@@ -258,22 +283,39 @@ export const TeacherDashboard: React.FC = () => {
                                     type="text" 
                                     value={assign.name}
                                     placeholder="เช่น ใบงานที่ 1: ประวัติศาสตร์..."
-                                    onChange={(e) => updateMetaItem(idx, 'name', e.target.value)}
+                                    onChange={(e) => updateMetaName(aIdx, e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-emerald-500"
                                 />
                             </div>
-                            <div>
-                                <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">ลิงก์ใบงาน/ชิ้นงาน</label>
-                                <div className="relative">
-                                    <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
-                                    <input 
-                                        type="text" 
-                                        value={assign.link}
-                                        placeholder="วางลิงก์ Google Form หรือ Drive ที่นี่..."
-                                        onChange={(e) => updateMetaItem(idx, 'link', e.target.value)}
-                                        className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-xl text-cyan-400 outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-xs"
-                                    />
-                                </div>
+                            <div className="space-y-3">
+                                <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">ลิงก์ใบงาน/ชิ้นงาน (เพิ่มได้มากกว่า 1 ลิงก์)</label>
+                                {assign.links.map((link, lIdx) => (
+                                    <div key={lIdx} className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
+                                            <input 
+                                                type="text" 
+                                                value={link}
+                                                placeholder="วางลิงก์ชิ้นงานที่นี่..."
+                                                onChange={(e) => updateMetaLink(aIdx, lIdx, e.target.value)}
+                                                className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-xl text-cyan-400 outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-xs"
+                                            />
+                                        </div>
+                                        <button 
+                                            onClick={() => removeMetaLink(aIdx, lIdx)}
+                                            className="p-4 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 rounded-xl transition-colors border border-rose-500/20"
+                                            title="ลบลิงก์นี้"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                ))}
+                                <button 
+                                    onClick={() => addMetaLink(aIdx)}
+                                    className="w-full py-3 border-2 border-dashed border-emerald-500/20 text-emerald-400/60 hover:text-emerald-400 hover:border-emerald-400/40 rounded-xl transition-all flex items-center justify-center gap-2 text-xs font-bold"
+                                >
+                                    <Plus size={16} /> เพิ่มลิงก์ชิ้นงานอื่น
+                                </button>
                             </div>
                         </div>
                     ))}

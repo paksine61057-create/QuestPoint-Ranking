@@ -131,8 +131,8 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                             const meta = metaData?.assignments[i];
                             const isDone = score > 0;
                             return (
-                                <div key={i} className={`p-6 rounded-[2rem] border transition-all flex flex-col justify-between ${isDone ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-white/5'}`}>
-                                    <div className="flex justify-between items-start mb-4">
+                                <div key={i} className={`p-6 rounded-[2rem] border transition-all flex flex-col gap-3 ${isDone ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-white/5'}`}>
+                                    <div className="flex justify-between items-start">
                                         <div className="flex flex-col">
                                             <span className={`text-[9px] font-black uppercase tracking-widest ${isDone ? 'text-emerald-400' : 'text-white/20'}`}>งานที่ {i+1}</span>
                                             <h4 className={`font-bold text-sm ${isDone ? 'text-white' : 'text-white/40'}`}>{meta?.name || `ภารกิจที่ #${i+1}`}</h4>
@@ -142,20 +142,27 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                                         </div>
                                     </div>
                                     
-                                    {meta?.link && (
-                                        <a 
-                                            href={meta.link} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                isDone 
-                                                ? 'bg-emerald-900/20 text-emerald-400 hover:bg-emerald-500 hover:text-black border border-emerald-500/20' 
-                                                : 'bg-amber-500 text-black hover:scale-105 shadow-xl animate-pulse'
-                                            }`}
-                                        >
-                                            {isDone ? <><CheckCircle2 size={14}/> ดูงานเดิม</> : <><ExternalLink size={14}/> เริ่มทำภารกิจ</>}
-                                        </a>
-                                    )}
+                                    <div className="space-y-2">
+                                        {meta?.links && meta.links.length > 0 && meta.links.map((url, lIdx) => (
+                                            url && (
+                                                <a 
+                                                    key={lIdx}
+                                                    href={url} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                        isDone 
+                                                        ? 'bg-emerald-900/20 text-emerald-400 hover:bg-emerald-500 hover:text-black border border-emerald-500/20' 
+                                                        : 'bg-amber-500 text-black hover:scale-[1.02] shadow-xl animate-pulse'
+                                                    }`}
+                                                >
+                                                    {isDone ? <CheckCircle2 size={14}/> : <ExternalLink size={14}/>}
+                                                    {isDone ? 'ดูงานเดิม' : 'เริ่มทำภารกิจ'} 
+                                                    {meta.links.length > 1 ? ` (ชิ้นที่ ${lIdx + 1})` : ''}
+                                                </a>
+                                            )
+                                        ))}
+                                    </div>
                                 </div>
                             );
                         })}

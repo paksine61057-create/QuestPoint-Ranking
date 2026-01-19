@@ -23,7 +23,7 @@ export type SpecialStatus = 'Normal' | 'ร' | 'มส.';
 
 export interface AssignmentMeta {
   name: string;
-  link: string;
+  links: string[]; // รองรับหลายลิงก์
 }
 
 export interface SubjectMetadata {
