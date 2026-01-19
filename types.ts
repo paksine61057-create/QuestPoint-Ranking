@@ -1,3 +1,4 @@
+
 export type Role = 'teacher' | 'student';
 
 export enum SubjectCode {
@@ -20,6 +21,15 @@ export enum Rank {
 
 export type SpecialStatus = 'Normal' | 'ร' | 'มส.';
 
+export interface AssignmentMeta {
+  name: string;
+  link: string;
+}
+
+export interface SubjectMetadata {
+  assignments: AssignmentMeta[];
+}
+
 export interface ScoreData {
   assignments: number[]; // Array of 6 scores, max 10 each
   midterm: number; // Max 20
@@ -33,15 +43,15 @@ export interface Student {
     [key in SubjectCode]?: {
       scores: ScoreData;
       status: SpecialStatus;
-      rewardRights: number; // Number of redemption rights available
-      redeemedCount: number; // Stats tracking
+      rewardRights: number; 
+      redeemedCount: number; 
     }
   };
 }
 
 export interface UserContextType {
   role: Role | null;
-  currentUser: Student | null; // If student
+  currentUser: Student | null;
   login: (role: Role, id?: string) => Promise<boolean>;
   logout: () => void;
 }

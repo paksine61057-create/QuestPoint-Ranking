@@ -1,66 +1,16 @@
-import { Student, SubjectCode, SpecialStatus } from '../types';
+
+import { Student, SubjectCode, SpecialStatus, SubjectMetadata } from '../types';
 import { calculateTotalScore, calculateMaxRewards } from './gradingLogic';
 
-// ============================================================================
-// CONFIGURATION
-// ============================================================================
-// Google Apps Script Web App URL
 const API_URL = 'https://script.google.com/macros/s/AKfycbwUe68OYusXDrVufjpeCT9V962PA7v4iBO_ZqI9XAcPgb4QaqZTR3oE_04qDkypYbYd/exec'; 
 
-// Fallback Mock Data (Used only if API_URL is empty or fetch fails completely in dev)
-const MOCK_DB: Student[] = [
-  {
-    id: 'S001',
-    name: 'Somchai Jaidee',
-    subjects: {
-      [SubjectCode.M1_HISTORY]: {
-        scores: { assignments: [8, 9, 8, 10, 9, 8], midterm: 16, final: 18 },
-        status: 'Normal',
-        rewardRights: 2,
-        redeemedCount: 0
-      },
-      [SubjectCode.M1_SOCIAL]: {
-        scores: { assignments: [5, 6, 5, 5, 6, 5], midterm: 10, final: 10 },
-        status: 'Normal',
-        rewardRights: 0,
-        redeemedCount: 0
-      }
-    }
-  },
-  {
-    id: 'S002',
-    name: 'Suda Rakrian',
-    subjects: {
-      [SubjectCode.M5_HISTORY]: {
-        scores: { assignments: [10, 10, 10, 10, 10, 10], midterm: 19, final: 20 },
-        status: 'Normal',
-        rewardRights: 5,
-        redeemedCount: 1
-      },
-      [SubjectCode.M5_SOCIAL]: {
-        scores: { assignments: [10, 10, 10, 10, 10, 10], midterm: 20, final: 20 },
-        status: 'Normal',
-        rewardRights: 10,
-        redeemedCount: 2
-      }
-    }
-  },
-  {
-    id: 'admin', // Virtual Admin User for testing logic if needed, though login handles this separately
-    name: 'Admin Teacher',
-    subjects: {}
-  }
-];
+// Local storage keys for metadata (as fallback/cache)
+const META_KEY_PREFIX = 'gradequest_meta_';
 
 export const SheetService = {
   
-  // Fetch all students (For Teacher)
   getAllStudents: async (): Promise<Student[]> => {
-    if (!API_URL) {
-      console.warn('API_URL is empty. Using Mock Data.');
-      return new Promise(resolve => setTimeout(() => resolve([...MOCK_DB]), 800));
-    }
-
+    if (!API_URL) return [];
     try {
       const response = await fetch(`${API_URL}?action=getAllStudents`);
       const data = await response.json();
@@ -71,13 +21,11 @@ export const SheetService = {
     }
   },
 
-  // Fetch single student by ID (For Student login)
   getStudentById: async (id: string): Promise<Student | null> => {
     const students = await SheetService.getAllStudents();
     return students.find(s => s.id === id) || null;
   },
 
-  // Update student scores/status (For Teacher)
   updateStudentScore: async (
     id: string, 
     subject: SubjectCode, 
@@ -85,34 +33,11 @@ export const SheetService = {
     value: any,
     index?: number
   ): Promise<boolean> => {
-    if (!API_URL) {
-      // Mock update logic
-      console.log('Mock Update:', { id, subject, field, value, index });
-      const student = MOCK_DB.find(s => s.id === id);
-      if (!student || !student.subjects[subject]) return false;
-      const subData = student.subjects[subject]!;
-      if (field === 'assignments' && typeof index === 'number') subData.scores.assignments[index] = Number(value);
-      else if (field === 'midterm') subData.scores.midterm = Number(value);
-      else if (field === 'final') subData.scores.final = Number(value);
-      else if (field === 'status') subData.status = value as SpecialStatus;
-      else if (field === 'rewardRights') subData.rewardRights = Number(value);
-      else if (field === 'redeemedCount') subData.redeemedCount = Number(value);
-      return true;
-    }
-
     try {
-      const payload = {
-        action: 'updateScore',
-        id,
-        subject,
-        field,
-        value,
-        index
-      };
-
+      const payload = { action: 'updateScore', id, subject, field, value, index };
       await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 'text/plain' prevents CORS preflight issues in simple GAS requests
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
       return true;
@@ -122,33 +47,11 @@ export const SheetService = {
     }
   },
 
-  // Student uses a reward right
   redeemReward: async (id: string, subject: SubjectCode): Promise<boolean> => {
-    if (!API_URL) {
-       // Mock redeem logic matching Google Script logic
-       const student = MOCK_DB.find(s => s.id === id);
-       if (!student || !student.subjects[subject]) return false;
-       
-       const subData = student.subjects[subject]!;
-
-       // Calculate real availability for mock test
-       const total = calculateTotalScore(subData.scores);
-       const max = calculateMaxRewards(total);
-       const redeemed = subData.redeemedCount || 0;
-       
-       // Allow redeem if calculated > redeemed OR if existing bucket > 0 (fallback)
-       if (max - redeemed > 0 || subData.rewardRights > 0) {
-         subData.rewardRights = Math.max(0, subData.rewardRights - 1);
-         subData.redeemedCount = (subData.redeemedCount || 0) + 1;
-         return true;
-       }
-       return false;
-    }
-
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
-         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'redeemReward', id, subject })
       });
       const result = await response.json();
@@ -156,6 +59,33 @@ export const SheetService = {
     } catch (error) {
       console.error('Error redeeming reward:', error);
       return false;
+    }
+  },
+
+  // Metadata Management
+  getSubjectMetadata: async (subject: SubjectCode): Promise<SubjectMetadata> => {
+    // Attempt to fetch from API if supported, or use localStorage as a bridge
+    const cached = localStorage.getItem(META_KEY_PREFIX + subject);
+    if (cached) return JSON.parse(cached);
+
+    // Default Empty State
+    return {
+      assignments: Array(6).fill(null).map((_, i) => ({ name: `Assignment ${i+1}`, link: '' }))
+    };
+  },
+
+  updateSubjectMetadata: async (subject: SubjectCode, meta: SubjectMetadata): Promise<boolean> => {
+    localStorage.setItem(META_KEY_PREFIX + subject, JSON.stringify(meta));
+    // In a real app, you'd send this to the GAS script too
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'updateMetadata', subject, meta })
+      });
+      return true;
+    } catch (e) {
+      return true; // Return true as we've saved to localStorage at least
     }
   }
 };

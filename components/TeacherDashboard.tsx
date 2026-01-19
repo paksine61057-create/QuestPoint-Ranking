@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Student, SubjectCode, SUBJECT_NAMES, SpecialStatus } from '../types';
+import { Student, SubjectCode, SUBJECT_NAMES, SpecialStatus, SubjectMetadata } from '../types';
 import { SheetService } from '../services/sheetService';
 import { calculateTotalScore, calculateGrade, calculateRank, calculateMaxRewards } from '../services/gradingLogic';
 import { RankBadge } from './RankBadge';
 import { BarChart, Bar, ResponsiveContainer, Cell } from 'recharts';
-import { RefreshCw, Search, Trophy, User, Gift, Target, Compass, Sparkles } from 'lucide-react';
+import { RefreshCw, Search, Trophy, User, Target, Compass, Sparkles, Link as LinkIcon, Settings2, X } from 'lucide-react';
 
 export const TeacherDashboard: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
@@ -13,6 +14,8 @@ export const TeacherDashboard: React.FC = () => {
   const [filterText, setFilterText] = useState('');
   const [isAutoRefresh, setIsAutoRefresh] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [showMetaModal, setShowMetaModal] = useState(false);
+  const [metaData, setMetaData] = useState<SubjectMetadata | null>(null);
   const isMounted = useRef(true);
 
   useEffect(() => {
@@ -23,8 +26,10 @@ export const TeacherDashboard: React.FC = () => {
     if (!isPolling && students.length === 0) setLoading(true);
     try {
         const data = await SheetService.getAllStudents();
+        const meta = await SheetService.getSubjectMetadata(selectedSubject);
         if (isMounted.current) {
             setStudents(prev => JSON.stringify(data) !== JSON.stringify(prev) ? data : prev);
+            setMetaData(meta);
             setLoading(false);
         }
     } catch (error) {
@@ -35,38 +40,21 @@ export const TeacherDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedSubject]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (isAutoRefresh) {
-        fetchData(true);
         interval = setInterval(() => fetchData(true), 5000);
     }
     return () => { if (interval) clearInterval(interval); };
-  }, [isAutoRefresh]);
+  }, [isAutoRefresh, selectedSubject]);
 
   const filteredStudents = students.filter(s => {
     const hasSubject = !!s.subjects[selectedSubject];
     const matchesSearch = s.name.toLowerCase().includes(filterText.toLowerCase()) || s.id.toLowerCase().includes(filterText.toLowerCase());
     return hasSubject && matchesSearch;
   });
-
-  const getStats = () => {
-    if (filteredStudents.length === 0) return { avg: 0, max: 0, min: 0 };
-    const scores = filteredStudents.map(s => {
-      const sub = s.subjects[selectedSubject]!;
-      return sub.status === 'Normal' ? calculateTotalScore(sub.scores) : 0;
-    }).filter(s => s > 0);
-    if (scores.length === 0) return { avg: 0, max: 0, min: 0 };
-    return {
-      avg: (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1),
-      max: Math.max(...scores),
-      min: Math.min(...scores)
-    };
-  };
-
-  const stats = getStats();
 
   const handleInlineUpdate = async (studentId: string, type: 'assignment' | 'midterm' | 'final' | 'status', value: string, index?: number) => {
     let numVal = Number(value);
@@ -96,25 +84,20 @@ export const TeacherDashboard: React.FC = () => {
     if (rightsToUpdate !== null) await SheetService.updateStudentScore(studentId, selectedSubject, 'rewardRights', rightsToUpdate);
   };
 
-  const handleRightsUpdate = async (val: string) => {
-     if(!editingStudent) return;
-     const num = Number(val);
-     setStudents(prev => prev.map(s => {
-        if (s.id === editingStudent.id && s.subjects[selectedSubject]) s.subjects[selectedSubject]!.rewardRights = num;
-        return s;
-     }));
-     setEditingStudent(prev => {
-         if(!prev || !prev.subjects[selectedSubject]) return prev;
-         prev.subjects[selectedSubject]!.rewardRights = num;
-         return { ...prev };
-     });
-     await SheetService.updateStudentScore(editingStudent.id, selectedSubject, 'rewardRights', num);
+  const handleMetaSave = async () => {
+    if (metaData) {
+        await SheetService.updateSubjectMetadata(selectedSubject, metaData);
+        setShowMetaModal(false);
+        alert('Mission Links Updated!');
+    }
   };
 
-  const chartData = filteredStudents.map(s => ({
-      name: s.name.split(' ')[0],
-      score: s.subjects[selectedSubject]!.status === 'Normal' ? calculateTotalScore(s.subjects[selectedSubject]!.scores) : 0,
-  }));
+  const updateMetaItem = (index: number, field: 'name' | 'link', value: string) => {
+    if (!metaData) return;
+    const newAssignments = [...metaData.assignments];
+    newAssignments[index] = { ...newAssignments[index], [field]: value };
+    setMetaData({ ...metaData, assignments: newAssignments });
+  };
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-6 animate-fadeIn pb-20">
@@ -145,6 +128,12 @@ export const TeacherDashboard: React.FC = () => {
               <option key={code} value={code} className="bg-slate-900">{SUBJECT_NAMES[code]}</option>
             ))}
           </select>
+          <button 
+            onClick={() => setShowMetaModal(true)}
+            className="bg-amber-600/20 hover:bg-amber-600/40 text-amber-400 px-6 py-4 rounded-[1.5rem] border border-amber-500/20 transition-all font-bold text-sm flex items-center gap-2"
+          >
+            <Settings2 size={18} /> Manage Missions
+          </button>
           <div className="relative">
             <Search className="absolute left-4 top-4 text-white/20 w-5 h-5" />
             <input 
@@ -157,32 +146,6 @@ export const TeacherDashboard: React.FC = () => {
           <button onClick={() => fetchData(false)} className="bg-emerald-600 hover:bg-emerald-500 text-white p-4 rounded-[1.5rem] transition-all shadow-xl active:scale-95 group">
             <RefreshCw size={24} className={loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-700'} />
           </button>
-        </div>
-      </div>
-
-      {/* Analytics Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {[
-          { label: 'Group Average', value: stats.avg, color: 'text-cyan-400', bg: 'bg-cyan-500/10', icon: Target },
-          { label: 'Peak Performance', value: stats.max, color: 'text-emerald-400', bg: 'bg-emerald-500/10', icon: Sparkles },
-          { label: 'Low Threshold', value: stats.min, color: 'text-rose-400', bg: 'bg-rose-500/10', icon: User },
-        ].map((stat, idx) => (
-          <div key={idx} className={`${stat.bg} p-8 rounded-[2.5rem] border border-white/5 flex flex-col justify-center relative overflow-hidden group shadow-lg`}>
-             <stat.icon className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 rotate-12 group-hover:rotate-0 transition-transform duration-700" />
-             <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">{stat.label}</p>
-             <p className={`text-5xl font-display font-black ${stat.color} mt-2`}>{stat.value}</p>
-          </div>
-        ))}
-        <div className="bg-black/20 p-6 rounded-[2.5rem] h-32 border border-white/5 flex items-center shadow-inner">
-           <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                    <Bar dataKey="score">
-                      {chartData.map((e, i) => (
-                        <Cell key={i} fill={e.score >= 80 ? '#34d399' : '#0ea5e9'} fillOpacity={0.6} />
-                      ))}
-                    </Bar>
-                </BarChart>
-            </ResponsiveContainer>
         </div>
       </div>
 
@@ -222,7 +185,7 @@ export const TeacherDashboard: React.FC = () => {
                   {sub.scores.assignments.map((score, idx) => (
                       <td key={idx} className="p-1 border-x border-white/5 bg-emerald-900/5">
                           <input 
-                              type="number" className="w-full bg-transparent text-center font-mono text-sm focus:bg-emerald-500/20 outline-none text-emerald-100 font-bold py-2 placeholder:text-white/10"
+                              type="number" className="w-full bg-transparent text-center font-mono text-sm focus:bg-emerald-500/20 outline-none text-emerald-100 font-bold py-2"
                               value={score || ''} 
                               placeholder="0"
                               onFocus={(e) => e.target.select()}
@@ -233,7 +196,7 @@ export const TeacherDashboard: React.FC = () => {
                   <td className="p-1 border-x border-white/5 bg-rose-900/5">
                       <input 
                         type="number" 
-                        className="w-full bg-transparent text-center font-mono text-sm text-rose-300 font-bold py-2 placeholder:text-rose-300/20" 
+                        className="w-full bg-transparent text-center font-mono text-sm text-rose-300 font-bold py-2" 
                         value={sub.scores.midterm || ''} 
                         placeholder="0"
                         onFocus={(e) => e.target.select()}
@@ -243,7 +206,7 @@ export const TeacherDashboard: React.FC = () => {
                   <td className="p-1 border-x border-white/5 bg-rose-900/5">
                       <input 
                         type="number" 
-                        className="w-full bg-transparent text-center font-mono text-sm text-rose-300 font-bold py-2 placeholder:text-rose-300/20" 
+                        className="w-full bg-transparent text-center font-mono text-sm text-rose-300 font-bold py-2" 
                         value={sub.scores.final || ''} 
                         placeholder="0"
                         onFocus={(e) => e.target.select()}
@@ -270,29 +233,57 @@ export const TeacherDashboard: React.FC = () => {
         </table>
       </div>
 
-      {/* Reward Editor Modal */}
-      {editingStudent && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-[#134e4a] border border-white/10 rounded-[4rem] w-full max-w-md overflow-hidden shadow-[0_0_100px_rgba(245,158,11,0.2)] animate-fadeIn">
-            <div className="p-12 text-center space-y-8">
-                <div className="w-24 h-24 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto">
-                    <Trophy size={56} className="text-amber-500" />
+      {/* Mission Metadata Modal */}
+      {showMetaModal && metaData && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+            <div className="bg-[#0f2a28] border border-white/10 rounded-[3rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 md:p-12 relative animate-fadeIn">
+                <button onClick={() => setShowMetaModal(false)} className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors"><X size={32} /></button>
+                
+                <div className="mb-10 text-center">
+                    <h2 className="text-3xl font-display font-black text-white flex items-center justify-center gap-4">
+                        <Settings2 className="text-amber-400" /> MISSION SETTINGS
+                    </h2>
+                    <p className="text-white/40 text-xs mt-2 uppercase tracking-[0.3em] font-bold">Define quest names and links for {SUBJECT_NAMES[selectedSubject]}</p>
                 </div>
-                <div>
-                    <h2 className="text-3xl font-display font-black text-white uppercase tracking-widest">{editingStudent.name}</h2>
-                    <p className="text-cyan-400/40 text-xs font-bold mt-1 uppercase tracking-widest">Reward Adjustment</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {metaData.assignments.map((assign, idx) => (
+                        <div key={idx} className="bg-black/40 p-6 rounded-[2rem] border border-white/5 space-y-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="bg-emerald-500 text-black text-[10px] px-3 py-1 rounded-full font-black">ASSIGNMENT {idx + 1}</span>
+                            </div>
+                            <div>
+                                <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">Mission Name</label>
+                                <input 
+                                    type="text" 
+                                    value={assign.name}
+                                    placeholder="e.g. History Quiz 1"
+                                    onChange={(e) => updateMetaItem(idx, 'name', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white outline-none focus:ring-2 focus:ring-emerald-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] text-white/30 uppercase font-black block mb-1 ml-2">Worksheet Link</label>
+                                <div className="relative">
+                                    <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" />
+                                    <input 
+                                        type="text" 
+                                        value={assign.link}
+                                        placeholder="https://..."
+                                        onChange={(e) => updateMetaItem(idx, 'link', e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-xl text-cyan-400 outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-xs"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-                <div className="bg-black/40 p-10 rounded-[3rem] border border-white/5">
-                    <p className="text-[10px] uppercase text-white/30 font-black tracking-[0.4em] mb-4">Current Harvest Balance</p>
-                    <div className="flex items-center justify-center gap-8">
-                        <button className="w-16 h-16 rounded-3xl bg-rose-900/30 text-rose-500 text-3xl font-black shadow-lg hover:scale-110 active:scale-95 transition-all" onClick={() => handleRightsUpdate(String((editingStudent.subjects[selectedSubject]?.rewardRights || 0) - 1))}>-</button>
-                        <span className="text-7xl font-display font-black text-amber-400">{editingStudent.subjects[selectedSubject]?.rewardRights || 0}</span>
-                        <button className="w-16 h-16 rounded-3xl bg-emerald-900/30 text-emerald-500 text-3xl font-black shadow-lg hover:scale-110 active:scale-95 transition-all" onClick={() => handleRightsUpdate(String((editingStudent.subjects[selectedSubject]?.rewardRights || 0) + 1))}>+</button>
-                    </div>
+
+                <div className="mt-12 flex gap-4">
+                    <button onClick={() => setShowMetaModal(false)} className="flex-1 bg-white/5 hover:bg-white/10 text-white py-5 rounded-3xl font-bold transition-all">Cancel</button>
+                    <button onClick={handleMetaSave} className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-700 text-white py-5 rounded-3xl font-game font-black uppercase tracking-widest hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">Commit Updates</button>
                 </div>
-                <button onClick={() => setEditingStudent(null)} className="w-full bg-gradient-to-r from-emerald-500 to-teal-700 text-white py-5 rounded-3xl font-game font-black uppercase tracking-[0.3em] hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">Update Mission</button>
             </div>
-          </div>
         </div>
       )}
     </div>
