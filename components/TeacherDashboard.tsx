@@ -52,12 +52,12 @@ const M6_SOCIAL_ORDER = [
   "นางสาวรัฐษฎาพร บุญพา", "นางสาววณิดา แสนขวา", "นางสาววริศรา วังภูมิใหญ่", "นางสาววิชญาพร หมั่นเก็บ",
   "นางสาววิไลลักษณ์ บุบผาลัง", "นางสาวศิรินทิพย์ รามโคตร", "นางสาวศุกรรณิกา ทมถา", "นางสาวศุภานัน ปัญญาใส",
   "นางสาวสรีรันย์ บำรุงภักดี", "นางสาวสิริรัตน์ ปาระดี", "นางสาวสุภารัตน์ คำเฮือง", "นางสาวอนัญญา เทือกตาทอง",
-  "นายกรสกุลศักดิ์ ชัยชาญพันธ์", "นายจันทกร ทำผง", "นายโชคชัย ศรีอาษา", "นายเด่นพงษ์ เถาโคตสี",
+  "นายกรสกุลศักดิ์ ชัยชาญพันธ์", "นาย|จันทกร ทำผง", "นายโชคชัย ศรีอาษา", "นายเด่นพงษ์ เถาโคตสี",
   "นายธราเทพ ยมหล้า", "นายธีรภัทร บัณฑิตย์", "นายธีระเดช วังภูมิใหญ่", "นายภาณุวัฒน์ ทาริวิก",
   "นายภูมิรัตน์ หีบแก้ว", "นายภูมิรัตน์ หีบแก้ว", "นายภูริพัฒน์ หมีกุล", "นายศักดินนท์ กกเปือย",
   "นายศิรายุทธ ศรีวงราช", "นายศิวัช ภักสงศรี", "นายอนุชิต สัตยากุม", "นายอรรถพล ชินวงค์",
   "นายอัษฏายุทธ แช่มเกด", "นายเอกสิทธิ์ เค้าแคน", "นางสาวจิตรานุช ท้าวสุวรรณกุล", "นางสาวเจนจิรา พานนนท์",
-  "นางสาวชุติมน ศิริขันธ์", "นางสาวณฐกมล แก้รัมย์", "นางสาวณัชชา แสนทอง", "นางสาวธนัญญา สีเหลือง",
+  "นางสาวชุติมน ศิริขันธ์", "นางสาวณฐกมล แก้รัมย์", "นางสาวณัชชา แสงทอง", "นางสาวธนัญญา สีเหลือง",
   "นางสาวพรพิพัฒน์ อ่อนมาก", "นางสาวพัชริภา สุนทอง", "นางสาวภัคพร แจ่มแจ้ง", "นางสาวอรชพร สินทร",
   "นางสาวอรัญญา กุลาพัง", "นางสาวอริสรา พันแสน"
 ];
@@ -216,12 +216,12 @@ export const TeacherDashboard: React.FC = () => {
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-6 animate-fadeIn pb-20">
-      {/* Header */}
-      <div className="bg-white/80 backdrop-blur-3xl p-8 rounded-[3rem] border border-white shadow-xl flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-100/50 to-transparent"></div>
+      {/* Header - ปรับจากเขียวเข้มเป็นขาวสดใส */}
+      <div className="bg-white/80 backdrop-blur-3xl p-8 rounded-[3rem] border border-white shadow-[0_10px_40px_rgba(15,118,110,0.1)] flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-100/40 to-transparent"></div>
         <div className="relative z-10">
            <h1 className="text-3xl font-display font-black text-slate-800 flex items-center gap-4 tracking-widest uppercase">
-             <Compass className="text-cyan-600" /> ศูนย์จัดการการสำรวจ
+             <Compass className="text-emerald-500" /> ศูนย์จัดการการสำรวจ
            </h1>
            <div className="flex items-center gap-3 mt-2">
               <span className="text-[10px] uppercase font-black text-emerald-600 tracking-widest">แผงควบคุมระดับวิชา</span>
@@ -235,7 +235,7 @@ export const TeacherDashboard: React.FC = () => {
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto relative z-10">
           <select 
-            className="bg-white text-slate-700 p-4 rounded-[1.5rem] border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500 transition-all font-bold text-sm shadow-sm"
+            className="bg-white text-slate-700 p-4 rounded-[1.5rem] border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500 transition-all font-bold text-sm shadow-sm hover:border-emerald-300"
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value as SubjectCode)}
           >
@@ -245,7 +245,7 @@ export const TeacherDashboard: React.FC = () => {
           </select>
           <button 
             onClick={() => setShowMetaModal(true)}
-            className="bg-amber-50 hover:bg-amber-100 text-amber-600 px-6 py-4 rounded-[1.5rem] border border-amber-200 transition-all font-bold text-sm flex items-center gap-2"
+            className="bg-amber-50 hover:bg-amber-100 text-amber-600 px-6 py-4 rounded-[1.5rem] border border-amber-200 transition-all font-bold text-sm flex items-center gap-2 shadow-sm"
           >
             <Settings2 size={18} /> จัดการภารกิจ
           </button>
@@ -253,7 +253,7 @@ export const TeacherDashboard: React.FC = () => {
             <Search className="absolute left-4 top-4 text-slate-300 w-5 h-5" />
             <input 
               type="text" placeholder="ค้นหานักเรียน..." 
-              className="bg-white text-slate-800 pl-12 p-4 rounded-[1.5rem] border border-slate-200 outline-none w-full focus:ring-2 focus:ring-cyan-500 font-bold shadow-sm"
+              className="bg-white text-slate-800 pl-12 p-4 rounded-[1.5rem] border border-slate-200 outline-none w-full focus:ring-2 focus:ring-emerald-500 font-bold shadow-sm"
               value={filterText}
               onChange={(e) => setFilterText(e.target.value)}
             />
@@ -264,8 +264,8 @@ export const TeacherDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white/90 backdrop-blur-md rounded-[3rem] overflow-hidden overflow-x-auto border border-white shadow-2xl">
+      {/* Table - ปรับสีตารางให้ดูสว่างและสะอาดตา */}
+      <div className="bg-white/90 backdrop-blur-md rounded-[3rem] overflow-hidden overflow-x-auto border border-white shadow-[0_15px_50px_rgba(0,0,0,0.05)]">
         <table className="w-full text-left border-collapse min-w-[1300px]">
           <thead>
             <tr className="bg-slate-50 text-slate-400 text-[9px] uppercase font-black tracking-widest border-b border-slate-100">
@@ -273,17 +273,17 @@ export const TeacherDashboard: React.FC = () => {
               <th className="p-6 text-center">แรงค์</th>
               <th className="p-6">รหัสนักเรียน</th>
               <th className="p-6">ชื่อ-นามสกุล</th>
-              {[1, 2, 3, 4, 5, 6].map(i => <th key={i} className="p-2 text-center bg-emerald-50 text-emerald-600">งาน {i}</th>)}
-              <th className="p-6 text-center bg-rose-50 text-rose-600">กลางภาค</th>
-              <th className="p-6 text-center bg-rose-50 text-rose-600">ปลายภาค</th>
-              <th className="p-6 text-center text-slate-800 font-black bg-slate-50/50">รวม</th>
-              <th className="p-6 text-center text-cyan-600 bg-slate-50/50">เกรด</th>
-              <th className="p-6 text-center text-amber-600 bg-amber-50">สิทธิ์แลก</th>
+              {[1, 2, 3, 4, 5, 6].map(i => <th key={i} className="p-2 text-center bg-emerald-50/50 text-emerald-600">งาน {i}</th>)}
+              <th className="p-6 text-center bg-rose-50/50 text-rose-600">กลางภาค</th>
+              <th className="p-6 text-center bg-rose-50/50 text-rose-600">ปลายภาค</th>
+              <th className="p-6 text-center text-slate-800 font-black bg-slate-100/30">รวม</th>
+              <th className="p-6 text-center text-emerald-600 bg-slate-100/30">เกรด</th>
+              <th className="p-6 text-center text-amber-600 bg-amber-50/50">สิทธิ์แลก</th>
               <th className="p-6 text-center">สถานะ</th>
               <th className="p-6 text-center">จัดการ</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 font-display">
+          <tbody className="divide-y divide-slate-50 font-display">
             {loading ? (
               <tr><td colSpan={19} className="p-32 text-center font-festive text-3xl text-slate-300 animate-pulse tracking-widest">กำลังดึงข้อมูลนักสำรวจ...</td></tr>
             ) : filteredStudents.map((student, index) => {
@@ -292,13 +292,13 @@ export const TeacherDashboard: React.FC = () => {
               const max = calculateMaxRewards(total);
               const calculatedRights = Math.max(0, max - (sub.redeemedCount || 0));
               return (
-                <tr key={student.id} className="hover:bg-cyan-50 transition-all group">
+                <tr key={student.id} className="hover:bg-emerald-50/40 transition-all group">
                   <td className="p-5 text-center text-xs text-slate-300 font-mono">{index + 1}</td>
                   <td className="p-2 text-center"><div className="w-12 h-12 mx-auto hover:scale-125 transition-transform"><RankBadge rank={calculateRank(total, sub.status)} size="sm" showLabel={false} /></div></td>
-                  <td className="p-5 font-mono text-xs text-cyan-600 font-bold">{student.id}</td>
+                  <td className="p-5 font-mono text-xs text-emerald-600 font-bold">{student.id}</td>
                   <td className="p-5 text-sm font-black text-slate-700 tracking-wide">{student.name}</td>
                   {sub.scores.assignments.map((score, idx) => (
-                      <td key={idx} className="p-1 border-x border-slate-50 bg-emerald-50/30">
+                      <td key={idx} className="p-1 border-x border-slate-50 bg-emerald-50/10">
                           <input 
                               type="number" className="w-full bg-transparent text-center font-mono text-sm focus:bg-emerald-100 outline-none text-emerald-700 font-bold py-2"
                               value={score || ''} placeholder="0" onFocus={(e) => e.target.select()}
@@ -306,14 +306,14 @@ export const TeacherDashboard: React.FC = () => {
                           />
                       </td>
                   ))}
-                  <td className="p-1 border-x border-slate-50 bg-rose-50/30">
+                  <td className="p-1 border-x border-slate-50 bg-rose-50/10">
                       <input 
                         type="number" className="w-full bg-transparent text-center font-mono text-sm text-rose-600 font-bold py-2" 
                         value={sub.scores.midterm || ''} placeholder="0" onFocus={(e) => e.target.select()}
                         onChange={(e) => handleInlineUpdate(student.id, 'midterm', e.target.value)}
                       />
                   </td>
-                  <td className="p-1 border-x border-slate-50 bg-rose-50/30">
+                  <td className="p-1 border-x border-slate-50 bg-rose-50/10">
                       <input 
                         type="number" className="w-full bg-transparent text-center font-mono text-sm text-rose-600 font-bold py-2" 
                         value={sub.scores.final || ''} placeholder="0" onFocus={(e) => e.target.select()}
@@ -321,17 +321,17 @@ export const TeacherDashboard: React.FC = () => {
                       />
                   </td>
                   <td className="p-5 text-center font-black text-slate-800 text-xl">{sub.status === 'Normal' ? total : '-'}</td>
-                  <td className="p-5 text-center font-black text-cyan-600 text-xl">{calculateGrade(total, sub.status)}</td>
-                  <td className="p-5 text-center font-black text-2xl text-amber-500 bg-amber-50/50">{calculatedRights}</td>
+                  <td className="p-5 text-center font-black text-emerald-600 text-xl">{calculateGrade(total, sub.status)}</td>
+                  <td className="p-5 text-center font-black text-2xl text-amber-500 bg-amber-50/30">{calculatedRights}</td>
                   <td className="p-2 text-center">
-                    <select className="bg-white text-[10px] border border-slate-200 rounded-xl px-2 py-1.5 font-black tracking-widest text-emerald-600" value={sub.status} onChange={(e) => handleInlineUpdate(student.id, 'status', e.target.value)}>
+                    <select className="bg-white text-[10px] border border-slate-200 rounded-xl px-2 py-1.5 font-black tracking-widest text-emerald-600 outline-none focus:border-emerald-500" value={sub.status} onChange={(e) => handleInlineUpdate(student.id, 'status', e.target.value)}>
                         <option value="Normal">ปกติ</option>
                         <option value="ร">ร</option>
                         <option value="มส.">มส.</option>
                     </select>
                   </td>
                   <td className="p-2 text-center">
-                    <button onClick={() => setEditingStudent(student)} className="text-slate-300 hover:text-amber-500 transition-colors p-3 bg-slate-50 rounded-2xl border border-slate-100"><Trophy size={18} /></button>
+                    <button onClick={() => setEditingStudent(student)} className="text-slate-300 hover:text-amber-500 transition-colors p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:shadow-md"><Trophy size={18} /></button>
                   </td>
                 </tr>
               );
@@ -340,20 +340,20 @@ export const TeacherDashboard: React.FC = () => {
         </table>
       </div>
 
-      {/* Modal */}
+      {/* Modal - ปรับแต่งสี Modal ให้ดูสว่างและเป็นกันเอง */}
       {showMetaModal && metaData && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-            <div className="bg-white border border-slate-200 rounded-[3rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl p-8 md:p-12 relative animate-fadeIn">
-                <button onClick={() => setShowMetaModal(false)} className="absolute top-8 right-8 text-slate-300 hover:text-slate-600 transition-colors"><X size={32} /></button>
+            <div className="bg-white border border-slate-100 rounded-[3rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.2)] p-8 md:p-12 relative animate-fadeIn">
+                <button onClick={() => setShowMetaModal(false)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><X size={32} /></button>
                 <div className="mb-10 text-center">
                     <h2 className="text-3xl font-display font-black text-slate-800 flex items-center justify-center gap-4">
-                        <Settings2 className="text-amber-500" /> ตั้งค่าภารกิจการเรียนรู้
+                        <Settings2 className="text-emerald-500" /> ตั้งค่าภารกิจการเรียนรู้
                     </h2>
                     <p className="text-slate-400 text-xs mt-2 uppercase tracking-[0.3em] font-bold">กำหนดชื่อและลิงก์ภารกิจสำหรับวิชา {SUBJECT_NAMES[selectedSubject]}</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {metaData.assignments.map((assign, aIdx) => (
-                        <div key={aIdx} className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-4">
+                        <div key={aIdx} className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 space-y-4">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="bg-emerald-500 text-white text-[10px] px-3 py-1 rounded-full font-black">ภารกิจที่ {aIdx + 1}</span>
                             </div>
@@ -371,7 +371,7 @@ export const TeacherDashboard: React.FC = () => {
                                             <LinkIcon size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                                             <input 
                                                 type="text" value={link} onChange={(e) => updateMetaLink(aIdx, lIdx, e.target.value)}
-                                                className="w-full bg-white border border-slate-200 p-4 pl-12 rounded-xl text-cyan-600 outline-none focus:ring-2 focus:ring-cyan-500 font-mono text-xs"
+                                                className="w-full bg-white border border-slate-200 p-4 pl-12 rounded-xl text-emerald-600 outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xs"
                                             />
                                         </div>
                                         <button onClick={() => removeMetaLink(aIdx, lIdx)} className="p-4 text-rose-400 hover:bg-rose-50 rounded-xl transition-colors border border-rose-100"><Trash2 size={16} /></button>
@@ -385,8 +385,8 @@ export const TeacherDashboard: React.FC = () => {
                     ))}
                 </div>
                 <div className="mt-12 flex gap-4">
-                    <button onClick={() => setShowMetaModal(false)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 py-5 rounded-3xl font-bold transition-all">ยกเลิก</button>
-                    <button onClick={handleMetaSave} className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-700 text-white py-5 rounded-3xl font-game font-black uppercase tracking-widest shadow-lg transition-all hover:shadow-xl">ยืนยันการบันทึกข้อมูล</button>
+                    <button onClick={() => setShowMetaModal(false)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 py-5 rounded-3xl font-bold transition-all shadow-sm">ยกเลิก</button>
+                    <button onClick={handleMetaSave} className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-5 rounded-3xl font-game font-black uppercase tracking-widest shadow-lg transition-all hover:shadow-emerald-200 hover:scale-[1.01]">ยืนยันการบันทึกข้อมูล</button>
                 </div>
             </div>
         </div>
