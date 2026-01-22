@@ -2,7 +2,7 @@
 import { Student, SubjectCode, SpecialStatus, SubjectMetadata } from '../types';
 import { calculateTotalScore, calculateMaxRewards } from './gradingLogic';
 
-const API_URL = 'https://script.google.com/macros/s/AKfycbwUe68OYusXDrVufjpeCT9V962PA7v4iBO_ZqI9XAcPgb4QaqZTR3oE_04qDkypYbYd/exec'; 
+const API_URL = 'https://script.google.com/macros/s/AKfycbzZ-ApUwAdOCXjUhJb_zg0_N2VBss4cKj0Ek5KRwaSvSRG7Qa0J97PbFlK4oU_zyIc0/exec'; 
 
 // Local storage keys for metadata (as fallback/cache)
 const META_KEY_PREFIX = 'gradequest_meta_';
