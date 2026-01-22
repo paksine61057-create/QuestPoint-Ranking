@@ -64,11 +64,25 @@ export const SheetService = {
 
   // Metadata Management
   getSubjectMetadata: async (subject: SubjectCode): Promise<SubjectMetadata> => {
-    // Attempt to fetch from API if supported, or use localStorage as a bridge
+    try {
+      // ดึงข้อมูลจาก API จริง (Google Sheets)
+      const response = await fetch(`${API_URL}?action=getMetadata&subject=${subject}`);
+      if (response.ok) {
+        const remoteData = await response.json();
+        if (remoteData && remoteData.assignments) {
+          // เก็บลง cache ไว้ด้วย
+          localStorage.setItem(META_KEY_PREFIX + subject, JSON.stringify(remoteData));
+          return remoteData;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching remote metadata:', error);
+    }
+
+    // หากดึงจาก API ไม่สำเร็จ ให้ลองดึงจาก Cache
     const cached = localStorage.getItem(META_KEY_PREFIX + subject);
     if (cached) {
       const parsed = JSON.parse(cached);
-      // Migration: convert old 'link' to 'links' array if needed
       parsed.assignments = parsed.assignments.map((a: any) => ({
         name: a.name,
         links: a.links || (a.link ? [a.link] : [''])
@@ -76,23 +90,26 @@ export const SheetService = {
       return parsed;
     }
 
-    // Default Empty State
+    // Default Empty State หากไม่มีข้อมูลเลย
     return {
       assignments: Array(6).fill(null).map((_, i) => ({ name: `ภารกิจที่ ${i+1}`, links: [''] }))
     };
   },
 
   updateSubjectMetadata: async (subject: SubjectCode, meta: SubjectMetadata): Promise<boolean> => {
+    // บันทึกที่ Local ก่อนเพื่อความรวดเร็วในการแสดงผลที่เครื่องตัวเอง
     localStorage.setItem(META_KEY_PREFIX + subject, JSON.stringify(meta));
     try {
-      await fetch(API_URL, {
+      // ส่งไปบันทึกที่ Server จริง
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'updateMetadata', subject, meta })
       });
-      return true;
+      return response.ok;
     } catch (e) {
-      return true;
+      console.error('Error saving metadata to server:', e);
+      return false;
     }
   }
 };
