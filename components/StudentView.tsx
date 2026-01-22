@@ -4,7 +4,7 @@ import { Student, SubjectCode, SUBJECT_NAMES, SubjectMetadata } from '../types';
 import { calculateTotalScore, calculateGrade, calculateRank, getRankColor, getNextRankInfo, calculateMaxRewards } from '../services/gradingLogic';
 import { RankBadge } from './RankBadge';
 import { SheetService } from '../services/sheetService';
-import { Compass, Sun, Flower, Trophy, Sparkles, Link as LinkIcon, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Compass, Sun, Flower, Trophy, Sparkles, Link as LinkIcon, ExternalLink, CheckCircle2, Info } from 'lucide-react';
 
 interface Props {
   student: Student;
@@ -36,6 +36,11 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
         alert('⚠️ สิทธิ์ไม่เพียงพอ หรือเกิดข้อผิดพลาด');
     }
     setRedeeming(false);
+  };
+
+  const isLink = (str: string) => {
+    const trimmed = str.trim().toLowerCase();
+    return trimmed.startsWith('http://') || trimmed.startsWith('https://');
   };
 
   return (
@@ -143,25 +148,57 @@ export const StudentView: React.FC<Props> = ({ student, onRefresh }) => {
                                     </div>
                                     
                                     <div className="space-y-2">
-                                        {meta?.links && meta.links.length > 0 && meta.links.map((url, lIdx) => (
-                                            url && (
+                                        {meta?.links && meta.links.length > 0 && meta.links.map((url, lIdx) => {
+                                            if (!url) return null;
+                                            const validUrl = isLink(url);
+                                            
+                                            // Determine display text based on link validity and status
+                                            // หากเป็นลิงก์จริง และนักเรียนทำแล้ว ให้โชว์ "ดูงานเดิม"
+                                            // หากเป็นลิงก์จริง และยังไม่ทำ ให้โชว์ URL (ถ้าสั้น) หรือ "เริ่มทำภารกิจ" (ถ้า URL ยาว)
+                                            // หากไม่ใช่ลิงก์ ให้โชว์ข้อความตามที่พิมพ์ไว้เลย
+                                            let displayText = url;
+                                            if (validUrl) {
+                                              if (isDone) {
+                                                displayText = 'ดูงานเดิม';
+                                              } else if (url.length > 25) {
+                                                displayText = 'เริ่มทำภารกิจ';
+                                              }
+                                            }
+
+                                            if (validUrl) {
+                                              return (
                                                 <a 
                                                     key={lIdx}
                                                     href={url} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
-                                                    className={`w-full py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    className={`w-full py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all text-center ${
                                                         isDone 
                                                         ? 'bg-emerald-900/20 text-emerald-400 hover:bg-emerald-500 hover:text-black border border-emerald-500/20' 
                                                         : 'bg-amber-500 text-black hover:scale-[1.02] shadow-xl animate-pulse'
                                                     }`}
                                                 >
                                                     {isDone ? <CheckCircle2 size={14}/> : <ExternalLink size={14}/>}
-                                                    {isDone ? 'ดูงานเดิม' : 'เริ่มทำภารกิจ'} 
-                                                    {meta.links.length > 1 ? ` (ชิ้นที่ ${lIdx + 1})` : ''}
+                                                    {displayText}
+                                                    {meta.links.length > 1 && !isDone && url.length > 25 ? ` (ชิ้นที่ ${lIdx + 1})` : ''}
                                                 </a>
-                                            )
-                                        ))}
+                                              );
+                                            } else {
+                                              return (
+                                                <div 
+                                                    key={lIdx}
+                                                    className={`w-full py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest border text-center ${
+                                                        isDone 
+                                                        ? 'bg-emerald-900/10 text-emerald-400/70 border-emerald-500/10' 
+                                                        : 'bg-white/5 text-white/60 border-white/10'
+                                                    }`}
+                                                >
+                                                    {isDone ? <CheckCircle2 size={14} className="shrink-0"/> : <Info size={14} className="shrink-0"/>}
+                                                    <span className="line-clamp-2">{displayText}</span>
+                                                </div>
+                                              );
+                                            }
+                                        })}
                                     </div>
                                 </div>
                             );
