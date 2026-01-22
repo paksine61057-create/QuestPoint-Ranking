@@ -52,12 +52,12 @@ const M6_SOCIAL_ORDER = [
   "นางสาวรัฐษฎาพร บุญพา", "นางสาววณิดา แสนขวา", "นางสาววริศรา วังภูมิใหญ่", "นางสาววิชญาพร หมั่นเก็บ",
   "นางสาววิไลลักษณ์ บุบผาลัง", "นางสาวศิรินทิพย์ รามโคตร", "นางสาวศุกรรณิกา ทมถา", "นางสาวศุภานัน ปัญญาใส",
   "นางสาวสรีรันย์ บำรุงภักดี", "นางสาวสิริรัตน์ ปาระดี", "นางสาวสุภารัตน์ คำเฮือง", "นางสาวอนัญญา เทือกตาทอง",
-  "นายกรสกุลศักดิ์ ชัยชาญพันธ์", "นาย|จันทกร ทำผง", "นายโชคชัย ศรีอาษา", "นายเด่นพงษ์ เถาโคตสี",
+  "นายกรสกุลศักดิ์ ชัยชาญพันธ์", "นายจันทกร ทำผง", "นายโชคชัย ศรีอาษา", "นายเด่นพงษ์ เถาโคตสี",
   "นายธราเทพ ยมหล้า", "นายธีรภัทร บัณฑิตย์", "นายธีระเดช วังภูมิใหญ่", "นายภาณุวัฒน์ ทาริวิก",
   "นายภูมิรัตน์ หีบแก้ว", "นายภูมิรัตน์ หีบแก้ว", "นายภูริพัฒน์ หมีกุล", "นายศักดินนท์ กกเปือย",
   "นายศิรายุทธ ศรีวงราช", "นายศิวัช ภักสงศรี", "นายอนุชิต สัตยากุม", "นายอรรถพล ชินวงค์",
   "นายอัษฏายุทธ แช่มเกด", "นายเอกสิทธิ์ เค้าแคน", "นางสาวจิตรานุช ท้าวสุวรรณกุล", "นางสาวเจนจิรา พานนนท์",
-  "นางสาวชุติมน ศิริขันธ์", "นางสาวณฐกมล แก้รัมย์", "นางสาวณัชชา แสงทอง", "นางสาวธนัญญา สีเหลือง",
+  "นางสาวชุติมน ศิริขันธ์", "นางสาวณฐกมล แก้รัมย์", "นางสาวณัชชา แสนทอง", "นางสาวธนัญญา สีเหลือง",
   "นางสาวพรพิพัฒน์ อ่อนมาก", "นางสาวพัชริภา สุนทอง", "นางสาวภัคพร แจ่มแจ้ง", "นางสาวอรชพร สินทร",
   "นางสาวอรัญญา กุลาพัง", "นางสาวอริสรา พันแสน"
 ];
@@ -216,8 +216,8 @@ export const TeacherDashboard: React.FC = () => {
 
   return (
     <div className="max-w-[1600px] mx-auto space-y-6 animate-fadeIn pb-20">
-      {/* Header - ปรับจากเขียวเข้มเป็นขาวสดใส */}
-      <div className="bg-white/80 backdrop-blur-3xl p-8 rounded-[3rem] border border-white shadow-[0_10px_40px_rgba(15,118,110,0.1)] flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden">
+      {/* Header - บังคับให้เป็นสีขาวสดใส (ลบสีเขียวเข้มเดิมออกถาวร) */}
+      <div className="bg-white/90 backdrop-blur-3xl p-8 rounded-[3rem] border border-white shadow-[0_10px_50px_rgba(0,0,0,0.08)] flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-emerald-100/40 to-transparent"></div>
         <div className="relative z-10">
            <h1 className="text-3xl font-display font-black text-slate-800 flex items-center gap-4 tracking-widest uppercase">
@@ -235,7 +235,7 @@ export const TeacherDashboard: React.FC = () => {
         </div>
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto relative z-10">
           <select 
-            className="bg-white text-slate-700 p-4 rounded-[1.5rem] border border-slate-200 outline-none focus:ring-2 focus:ring-cyan-500 transition-all font-bold text-sm shadow-sm hover:border-emerald-300"
+            className="bg-white text-slate-700 p-4 rounded-[1.5rem] border border-slate-200 outline-none focus:ring-2 focus:ring-emerald-500 transition-all font-bold text-sm shadow-sm"
             value={selectedSubject}
             onChange={(e) => setSelectedSubject(e.target.value as SubjectCode)}
           >
@@ -264,8 +264,8 @@ export const TeacherDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Table - ปรับสีตารางให้ดูสว่างและสะอาดตา */}
-      <div className="bg-white/90 backdrop-blur-md rounded-[3rem] overflow-hidden overflow-x-auto border border-white shadow-[0_15px_50px_rgba(0,0,0,0.05)]">
+      {/* Table - พื้นขาวสะอาดตา */}
+      <div className="bg-white/95 backdrop-blur-md rounded-[3rem] overflow-hidden overflow-x-auto border border-white shadow-[0_15px_60px_rgba(0,0,0,0.05)]">
         <table className="w-full text-left border-collapse min-w-[1300px]">
           <thead>
             <tr className="bg-slate-50 text-slate-400 text-[9px] uppercase font-black tracking-widest border-b border-slate-100">
@@ -324,14 +324,14 @@ export const TeacherDashboard: React.FC = () => {
                   <td className="p-5 text-center font-black text-emerald-600 text-xl">{calculateGrade(total, sub.status)}</td>
                   <td className="p-5 text-center font-black text-2xl text-amber-500 bg-amber-50/30">{calculatedRights}</td>
                   <td className="p-2 text-center">
-                    <select className="bg-white text-[10px] border border-slate-200 rounded-xl px-2 py-1.5 font-black tracking-widest text-emerald-600 outline-none focus:border-emerald-500" value={sub.status} onChange={(e) => handleInlineUpdate(student.id, 'status', e.target.value)}>
+                    <select className="bg-white text-[10px] border border-slate-200 rounded-xl px-2 py-1.5 font-black tracking-widest text-emerald-600 outline-none" value={sub.status} onChange={(e) => handleInlineUpdate(student.id, 'status', e.target.value)}>
                         <option value="Normal">ปกติ</option>
                         <option value="ร">ร</option>
                         <option value="มส.">มส.</option>
                     </select>
                   </td>
                   <td className="p-2 text-center">
-                    <button onClick={() => setEditingStudent(student)} className="text-slate-300 hover:text-amber-500 transition-colors p-3 bg-slate-50 rounded-2xl border border-slate-100 hover:shadow-md"><Trophy size={18} /></button>
+                    <button onClick={() => setEditingStudent(student)} className="text-slate-300 hover:text-amber-500 transition-colors p-3 bg-slate-50 rounded-2xl border border-slate-100"><Trophy size={18} /></button>
                   </td>
                 </tr>
               );
@@ -340,10 +340,10 @@ export const TeacherDashboard: React.FC = () => {
         </table>
       </div>
 
-      {/* Modal - ปรับแต่งสี Modal ให้ดูสว่างและเป็นกันเอง */}
+      {/* Modal - ใช้สีขาวสะอาดตัดกับปุ่มมรกต */}
       {showMetaModal && metaData && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-            <div className="bg-white border border-slate-100 rounded-[3rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.2)] p-8 md:p-12 relative animate-fadeIn">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+            <div className="bg-white border border-slate-100 rounded-[3rem] w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-[0_30px_100px_rgba(0,0,0,0.3)] p-8 md:p-12 relative animate-fadeIn">
                 <button onClick={() => setShowMetaModal(false)} className="absolute top-8 right-8 text-slate-300 hover:text-rose-500 transition-colors"><X size={32} /></button>
                 <div className="mb-10 text-center">
                     <h2 className="text-3xl font-display font-black text-slate-800 flex items-center justify-center gap-4">
@@ -386,7 +386,7 @@ export const TeacherDashboard: React.FC = () => {
                 </div>
                 <div className="mt-12 flex gap-4">
                     <button onClick={() => setShowMetaModal(false)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 py-5 rounded-3xl font-bold transition-all shadow-sm">ยกเลิก</button>
-                    <button onClick={handleMetaSave} className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-5 rounded-3xl font-game font-black uppercase tracking-widest shadow-lg transition-all hover:shadow-emerald-200 hover:scale-[1.01]">ยืนยันการบันทึกข้อมูล</button>
+                    <button onClick={handleMetaSave} className="flex-[2] bg-gradient-to-r from-emerald-500 to-teal-600 text-white py-5 rounded-3xl font-game font-black uppercase tracking-widest shadow-lg transition-all hover:scale-[1.01]">ยืนยันการบันทึกข้อมูล</button>
                 </div>
             </div>
         </div>
