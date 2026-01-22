@@ -13,7 +13,8 @@ export const SheetService = {
   getAllStudents: async (): Promise<Student[]> => {
     if (!API_URL) return [];
     try {
-      const response = await fetch(`${API_URL}?action=getAllStudents`);
+      // เพิ่ม timestamp เพื่อป้องกัน cache ของ browser
+      const response = await fetch(`${API_URL}?action=getAllStudents&t=${Date.now()}`);
       if (!response.ok) throw new Error('API request failed');
       const data = await response.json();
       return data;
@@ -67,7 +68,7 @@ export const SheetService = {
   // Metadata Management
   getSubjectMetadata: async (subject: SubjectCode): Promise<SubjectMetadata> => {
     try {
-      const response = await fetch(`${API_URL}?action=getMetadata&subject=${subject}`);
+      const response = await fetch(`${API_URL}?action=getMetadata&subject=${subject}&t=${Date.now()}`);
       if (response.ok) {
         const remoteData = await response.json();
         if (remoteData && remoteData.assignments) {

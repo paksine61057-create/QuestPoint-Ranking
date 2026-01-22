@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Student, SubjectCode, SUBJECT_NAMES, SpecialStatus, SubjectMetadata } from '../types';
 import { SheetService } from '../services/sheetService';
 import { calculateTotalScore, calculateGrade, calculateRank, calculateMaxRewards } from '../services/gradingLogic';
@@ -49,18 +49,29 @@ export const TeacherDashboard: React.FC = () => {
     return () => { if (interval) clearInterval(interval); };
   }, [isAutoRefresh, selectedSubject]);
 
-  const filteredStudents = students
-    .filter(s => !!s.subjects[selectedSubject]) // กรองเฉพาะนักเรียนในวิชานี้
-    .sort((a, b) => { // จัดเรียงตาม rowIndex ของวิชาที่เลือกอยู่
-      const rowA = a.subjects[selectedSubject]?.rowIndex ?? 9999;
-      const rowB = b.subjects[selectedSubject]?.rowIndex ?? 9999;
-      return rowA - rowB;
-    })
-    .filter(s => { // กรองตามคำค้นหา (ถ้ามี)
-      const matchesSearch = s.name.toLowerCase().includes(filterText.toLowerCase()) || 
-                           s.id.toLowerCase().includes(filterText.toLowerCase());
-      return matchesSearch;
-    });
+  // ใช้ useMemo เพื่อให้การกรองและจัดเรียงทำงานได้อย่างมีประสิทธิภาพ
+  const filteredStudents = useMemo(() => {
+    const search = filterText.toLowerCase().trim();
+    
+    return students
+      .filter(s => s.subjects && !!s.subjects[selectedSubject]) // กรองเฉพาะนักเรียนที่มีวิชานี้
+      .map(s => ({ ...s })) // Clone เพื่อความปลอดภัยในการ sort
+      .sort((a, b) => {
+        // ดึงลำดับแถว (rowIndex) จาก Google Sheets ของวิชานั้นๆ
+        const rowA = Number(a.subjects[selectedSubject]?.rowIndex) || 99999;
+        const rowB = Number(b.subjects[selectedSubject]?.rowIndex) || 99999;
+        
+        if (rowA !== rowB) return rowA - rowB;
+        
+        // ถ้า rowIndex เท่ากัน (ไม่ควรเกิดขึ้น) ให้เรียงตามชื่อ
+        return (a.name || "").localeCompare(b.name || "", 'th');
+      })
+      .filter(s => {
+        if (!search) return true;
+        return (s.name || "").toLowerCase().includes(search) || 
+               (s.id || "").toLowerCase().includes(search);
+      });
+  }, [students, selectedSubject, filterText]);
 
   const handleInlineUpdate = async (studentId: string, type: 'assignment' | 'midterm' | 'final' | 'status', value: string, index?: number) => {
     let numVal = Number(value);

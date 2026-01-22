@@ -30,27 +30,29 @@ function doGet(e) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
   if (action === "getAllStudents") {
-    const students = []; // ใช้ Array เพื่อรักษาลำดับการค้นพบครั้งแรก
-    const studentMap = {}; // ใช้ช่วยในการค้นหาว่าเพิ่มนักเรียนคนนี้ไปหรือยัง (Quick Lookup)
+    const students = [];
+    const studentMap = {}; 
     
     SUBJECT_CODES.forEach(code => {
       const sheet = ss.getSheetByName(code);
       if (!sheet) return;
       const values = sheet.getDataRange().getValues();
       
-      // วนลูปตามแถวในชีท (เริ่มที่ i=1 ข้ามหัวตาราง)
       for (let i = 1; i < values.length; i++) {
         const row = values[i];
-        const id = String(row[0]);
-        if (!id || id.trim() === "") continue;
+        const idRaw = row[0];
+        if (idRaw === undefined || idRaw === null || idRaw === "") continue;
+        
+        const id = String(idRaw).trim();
+        if (id === "") continue;
         
         if (!studentMap[id]) {
-          const newStudent = { id: id, name: row[1], subjects: {} };
+          const newStudent = { id: id, name: String(row[1] || "").trim(), subjects: {} };
           studentMap[id] = newStudent;
           students.push(newStudent);
         }
         
-        // เพิ่มข้อมูลคะแนนและสถานะของวิชานั้นๆ ให้กับนักเรียน พร้อมบันทึก rowIndex
+        // บันทึก rowIndex เป็นตัวเลขที่แน่นอนตามลำดับใน Sheet ของวิชานั้นๆ
         studentMap[id].subjects[code] = {
           scores: {
             assignments: [row[2], row[3], row[4], row[5], row[6], row[7]].map(v => Number(v) || 0),
@@ -60,7 +62,7 @@ function doGet(e) {
           status: row[10] || "Normal",
           rewardRights: Number(row[11]) || 0,
           redeemedCount: Number(row[12]) || 0,
-          rowIndex: i // เก็บเลขแถวเพื่อใช้เรียงลำดับในฝั่ง Frontend
+          rowIndex: Number(i) // ตรวจสอบว่าเป็นตัวเลขแน่นอน
         };
       }
     });
@@ -98,7 +100,7 @@ function doPost(e) {
     const data = sheet.getDataRange().getValues();
     let rowIdx = -1;
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === String(params.id)) {
+      if (String(data[i][0]).trim() === String(params.id).trim()) {
         rowIdx = i + 1;
         break;
       }
@@ -123,7 +125,7 @@ function doPost(e) {
     const sheet = ss.getSheetByName(params.subject);
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]) === String(params.id)) {
+      if (String(data[i][0]).trim() === String(params.id).trim()) {
         const currentRights = Number(data[i][11]) || 0;
         const currentRedeemed = Number(data[i][12]) || 0;
         if (currentRights > 0) {
