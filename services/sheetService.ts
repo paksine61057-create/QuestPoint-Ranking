@@ -2,6 +2,7 @@
 import { Student, SubjectCode, SpecialStatus, SubjectMetadata } from '../types';
 import { calculateTotalScore, calculateMaxRewards } from './gradingLogic';
 
+// นำ URL ที่ได้จากการ Deploy Google Apps Script (New Deployment) มาวางที่นี่
 const API_URL = 'https://script.google.com/macros/s/AKfycbzZ-ApUwAdOCXjUhJb_zg0_N2VBss4cKj0Ek5KRwaSvSRG7Qa0J97PbFlK4oU_zyIc0/exec'; 
 
 // Local storage keys for metadata (as fallback/cache)
@@ -13,6 +14,7 @@ export const SheetService = {
     if (!API_URL) return [];
     try {
       const response = await fetch(`${API_URL}?action=getAllStudents`);
+      if (!response.ok) throw new Error('API request failed');
       const data = await response.json();
       return data;
     } catch (error) {
@@ -35,12 +37,12 @@ export const SheetService = {
   ): Promise<boolean> => {
     try {
       const payload = { action: 'updateScore', id, subject, field, value, index };
-      await fetch(API_URL, {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
-      return true;
+      return response.ok;
     } catch (error) {
       console.error('Error updating score:', error);
       return false;

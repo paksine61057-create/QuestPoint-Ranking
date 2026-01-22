@@ -19,7 +19,8 @@ const NatureParticles = () => {
       delay: `${Math.random() * 8}s`,
       duration: `${Math.random() * 12 + 8}s`,
       color: colors[Math.floor(Math.random() * colors.length)],
-      type: Math.random() > 0.5 ? 'leaf' : 'petal'
+      // Fix: Cast the type to 'leaf' | 'petal' to match state definition and resolve TypeScript mismatch at setParticles(p) on line 24.
+      type: (Math.random() > 0.5 ? 'leaf' : 'petal') as 'leaf' | 'petal'
     }));
     setParticles(p);
   }, []);
