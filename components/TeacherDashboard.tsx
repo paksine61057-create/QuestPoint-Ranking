@@ -6,6 +6,26 @@ import { calculateTotalScore, calculateGrade, calculateRank, calculateMaxRewards
 import { RankBadge } from './RankBadge';
 import { RefreshCw, Search, Trophy, User, Target, Compass, Sparkles, Link as LinkIcon, Settings2, X, Plus, Trash2 } from 'lucide-react';
 
+// รายชื่อนักเรียน ม.6 ตามลำดับที่กำหนด
+const M6_SOCIAL_ORDER = [
+  "นายกฤษดา ปัญญาวงค์", "นายจักรดุลย์ จันทรเสนา", "นายธนวรรธน์ จิตรโสภา", "นายธนาธิป เจียรวาปี",
+  "นายมงคล ศิริเลี้ยง", "นายรัชชานนท์ สาธุการ", "นายรุ่งเรืองจิต อินธิแสน", "นายสิรวิชญ์ ปาตั้น",
+  "นายอลงกรณ์ พุ่มชะอุ่ม", "นางสาวกัญญารัตน์ แสนพันนา", "นางสาวชลธิชา อาจแสง", "นางสาวณัฐริกา บำรุงภักดี",
+  "นางสาวณัฐฤดี พานิพัตร์", "นางสาวดวงภรณ์ เบิกบานดี", "นางสาวทิพย์สุดา แคนจันทร์", "นางสาวธัญวรัตน์ ศิริภักดิ์",
+  "นางสาวปาณิศา เทียงแก้ว", "ปาริตา ศรีวงศ์ราช", "นางสาวภัททรา ลาวะดี", "นางสาวมัลลิกา บุญพา",
+  "นางสาวรัฐษฎาพร บุญพา", "นางสาววณิดา แสนขวา", "นางสาววริศรา วังภูมิใหญ่", "นางสาววิชญาพร หมั่นเก็บ",
+  "นางสาววิไลลักษณ์ บุบผาลัง", "นางสาวศิรินทิพย์ รามโคตร", "นางสาวศุกรรณิกา ทมถา", "นางสาวศุภานัน ปัญญาใส",
+  "นางสาวสรีรันย์ บำรุงภักดี", "นางสาวสิริรัตน์ ปาระดี", "นางสาวสุภารัตน์ คำเฮือง", "นางสาวอนัญญา เทือกตาทอง",
+  "นายกรสกุลศักดิ์ ชัยชาญพันธ์", "นายจันทกร ทำผง", "นายโชคชัย ศรีอาษา", "นายเด่นพงษ์ เถาโคตสี",
+  "นายธราเทพ ยมหล้า", "นายธีรภัทร บัณฑิตย์", "นายธีระเดช วังภูมิใหญ่", "นายภาณุวัฒน์ ทาริวิก",
+  "นายภูมิรัตน์ หีบแก้ว", "นายภูริพัฒน์ หมีกุล", "นายศักดินนท์ กกเปือย", "นายศิรายุทธ ศรีวงราช",
+  "นายศิวัช ภักสงศรี", "นายอนุชิต สัตยากุม", "นายอรรถพล ชินวงค์", "นายอัษฏายุทธ แช่มเกด",
+  "นายเอกสิทธิ์ เค้าแคน", "นางสาวจิตรานุช ท้าวสุวรรณกุล", "นางสาวเจนจิรา พานนนท์", "นางสาวชุติมน ศิริขันธ์",
+  "นางสาวณฐกมล แก้รัมย์", "นางสาวณัชชา แสงทอง", "นางสาวธนัญญา สีเหลือง", "นางสาวพรพิพัฒน์ อ่อนมาก",
+  "นางสาวพัชริภา สุนทอง", "นางสาวภัคพร แจ่มแจ้ง", "นางสาวอรชพร สินทร", "นางสาวอรัญญา กุลาพัง",
+  "นางสาวอริสรา พันแสน"
+];
+
 export const TeacherDashboard: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,21 +69,30 @@ export const TeacherDashboard: React.FC = () => {
     return () => { if (interval) clearInterval(interval); };
   }, [isAutoRefresh, selectedSubject]);
 
-  // ใช้ useMemo เพื่อให้การกรองและจัดเรียงทำงานได้อย่างมีประสิทธิภาพ
   const filteredStudents = useMemo(() => {
     const search = filterText.toLowerCase().trim();
     
     return students
-      .filter(s => s.subjects && !!s.subjects[selectedSubject]) // กรองเฉพาะนักเรียนที่มีวิชานี้
-      .map(s => ({ ...s })) // Clone เพื่อความปลอดภัยในการ sort
+      .filter(s => s.subjects && !!s.subjects[selectedSubject])
+      .map(s => ({ ...s }))
       .sort((a, b) => {
-        // ดึงลำดับแถว (rowIndex) จาก Google Sheets ของวิชานั้นๆ
+        // กรณีพิเศษ: ถ้าเป็นวิชาสังคม ม.6 ให้เรียงตาม M6_SOCIAL_ORDER
+        if (selectedSubject === SubjectCode.M6_SOCIAL) {
+          const idxA = M6_SOCIAL_ORDER.indexOf(a.name);
+          const idxB = M6_SOCIAL_ORDER.indexOf(b.name);
+          
+          // ถ้าทั้งคู่มีในลิสต์ ให้เรียงตามลิสต์
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          // ถ้าคนหนึ่งไม่มีในลิสต์ ให้เอาคนที่มีไว้ก่อน
+          if (idxA !== -1) return -1;
+          if (idxB !== -1) return 1;
+        }
+
+        // กรณีปกติ: เรียงตาม rowIndex จาก Google Sheets
         const rowA = Number(a.subjects[selectedSubject]?.rowIndex) || 99999;
         const rowB = Number(b.subjects[selectedSubject]?.rowIndex) || 99999;
         
         if (rowA !== rowB) return rowA - rowB;
-        
-        // ถ้า rowIndex เท่ากัน (ไม่ควรเกิดขึ้น) ให้เรียงตามชื่อ
         return (a.name || "").localeCompare(b.name || "", 'th');
       })
       .filter(s => {
