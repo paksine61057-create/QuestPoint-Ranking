@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Mountains+of+Christmas:wght@400;700&family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
+        darkMode: 'class', // บังคับใช้ระบบ Class แทนการตรวจจับจาก System (Media)
         theme: {
           extend: {
             fontFamily: {
@@ -69,8 +70,8 @@
     pointer-events: none;
     z-index: 50;
   }
-  /* บังคับสีพื้นหลังให้สว่างเสมอเพื่อแก้ปัญหาธีมเดิมค้าง */
-  body {
+  /* บังคับสีพื้นหลังให้สว่างเสมอและปิดผลของ dark mode ที่อาจตกค้าง */
+  html, body {
     background-color: #f8fafc !important;
     color: #1e293b !important;
     margin: 0;
