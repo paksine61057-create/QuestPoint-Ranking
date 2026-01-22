@@ -67,12 +67,10 @@ export const SheetService = {
   // Metadata Management
   getSubjectMetadata: async (subject: SubjectCode): Promise<SubjectMetadata> => {
     try {
-      // ดึงข้อมูลจาก API จริง (Google Sheets)
       const response = await fetch(`${API_URL}?action=getMetadata&subject=${subject}`);
       if (response.ok) {
         const remoteData = await response.json();
         if (remoteData && remoteData.assignments) {
-          // เก็บลง cache ไว้ด้วย
           localStorage.setItem(META_KEY_PREFIX + subject, JSON.stringify(remoteData));
           return remoteData;
         }
@@ -81,7 +79,6 @@ export const SheetService = {
       console.error('Error fetching remote metadata:', error);
     }
 
-    // หากดึงจาก API ไม่สำเร็จ ให้ลองดึงจาก Cache
     const cached = localStorage.getItem(META_KEY_PREFIX + subject);
     if (cached) {
       const parsed = JSON.parse(cached);
@@ -92,17 +89,14 @@ export const SheetService = {
       return parsed;
     }
 
-    // Default Empty State หากไม่มีข้อมูลเลย
     return {
       assignments: Array(6).fill(null).map((_, i) => ({ name: `ภารกิจที่ ${i+1}`, links: [''] }))
     };
   },
 
   updateSubjectMetadata: async (subject: SubjectCode, meta: SubjectMetadata): Promise<boolean> => {
-    // บันทึกที่ Local ก่อนเพื่อความรวดเร็วในการแสดงผลที่เครื่องตัวเอง
     localStorage.setItem(META_KEY_PREFIX + subject, JSON.stringify(meta));
     try {
-      // ส่งไปบันทึกที่ Server จริง
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
