@@ -45,6 +45,7 @@ export interface Student {
       status: SpecialStatus;
       rewardRights: number; 
       redeemedCount: number; 
+      rowIndex: number; // ลำดับแถวใน Sheet ของวิชานั้นๆ
     }
   };
 }

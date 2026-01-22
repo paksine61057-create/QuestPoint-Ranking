@@ -30,7 +30,7 @@ function doGet(e) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
 
   if (action === "getAllStudents") {
-    const students = []; // ใช้ Array เพื่อรักษาลำดับตามที่ปรากฏในชีท
+    const students = []; // ใช้ Array เพื่อรักษาลำดับการค้นพบครั้งแรก
     const studentMap = {}; // ใช้ช่วยในการค้นหาว่าเพิ่มนักเรียนคนนี้ไปหรือยัง (Quick Lookup)
     
     SUBJECT_CODES.forEach(code => {
@@ -44,15 +44,13 @@ function doGet(e) {
         const id = String(row[0]);
         if (!id || id.trim() === "") continue;
         
-        // หากยังไม่มีนักเรียนคนนี้ในระบบรวม ให้สร้างใหม่และ push ต่อท้าย Array
-        // วิธีนี้จะทำให้ลำดับนักเรียนยึดตามลำดับแถวใน Google Sheets
         if (!studentMap[id]) {
           const newStudent = { id: id, name: row[1], subjects: {} };
           studentMap[id] = newStudent;
           students.push(newStudent);
         }
         
-        // เพิ่มข้อมูลคะแนนและสถานะของวิชานั้นๆ ให้กับนักเรียน
+        // เพิ่มข้อมูลคะแนนและสถานะของวิชานั้นๆ ให้กับนักเรียน พร้อมบันทึก rowIndex
         studentMap[id].subjects[code] = {
           scores: {
             assignments: [row[2], row[3], row[4], row[5], row[6], row[7]].map(v => Number(v) || 0),
@@ -61,7 +59,8 @@ function doGet(e) {
           },
           status: row[10] || "Normal",
           rewardRights: Number(row[11]) || 0,
-          redeemedCount: Number(row[12]) || 0
+          redeemedCount: Number(row[12]) || 0,
+          rowIndex: i // เก็บเลขแถวเพื่อใช้เรียงลำดับในฝั่ง Frontend
         };
       }
     });

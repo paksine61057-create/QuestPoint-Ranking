@@ -49,11 +49,18 @@ export const TeacherDashboard: React.FC = () => {
     return () => { if (interval) clearInterval(interval); };
   }, [isAutoRefresh, selectedSubject]);
 
-  const filteredStudents = students.filter(s => {
-    const hasSubject = !!s.subjects[selectedSubject];
-    const matchesSearch = s.name.toLowerCase().includes(filterText.toLowerCase()) || s.id.toLowerCase().includes(filterText.toLowerCase());
-    return hasSubject && matchesSearch;
-  });
+  const filteredStudents = students
+    .filter(s => !!s.subjects[selectedSubject]) // กรองเฉพาะนักเรียนในวิชานี้
+    .sort((a, b) => { // จัดเรียงตาม rowIndex ของวิชาที่เลือกอยู่
+      const rowA = a.subjects[selectedSubject]?.rowIndex ?? 9999;
+      const rowB = b.subjects[selectedSubject]?.rowIndex ?? 9999;
+      return rowA - rowB;
+    })
+    .filter(s => { // กรองตามคำค้นหา (ถ้ามี)
+      const matchesSearch = s.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                           s.id.toLowerCase().includes(filterText.toLowerCase());
+      return matchesSearch;
+    });
 
   const handleInlineUpdate = async (studentId: string, type: 'assignment' | 'midterm' | 'final' | 'status', value: string, index?: number) => {
     let numVal = Number(value);
